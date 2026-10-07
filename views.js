@@ -34,7 +34,7 @@
   function logSpec(existing, defaults) {
     existing = existing || {}; defaults = defaults || {};
     return [
-      { key: 'activityId', label: 'Activity', type: 'select', groups: activityGroups(!!existing.id), placeholder: 'Choose an activity…', required: true, default: defaults.activityId, full: true },
+      { key: 'activityId', label: 'Activity', type: 'select', groups: activityGroups(true), placeholder: 'Choose an activity…', required: true, default: defaults.activityId, full: true },
       { key: 'date', label: 'Date', type: 'date', required: true, default: C.todayISO() },
       { key: 'hours', label: 'Hours', type: 'number', step: 0.25, min: 0, required: true, placeholder: '2.5', validate: v => v === 0 ? 'Enter more than 0' : '' },
       { key: 'endDate', label: 'End date (optional, for a whole week or month)', type: 'date', help: 'Leave blank for a single day. For a block of hours logged at once, the hours are spread evenly across the days, so a block that crosses a semester or summer boundary is split correctly.' },
@@ -111,6 +111,7 @@
     ];
   }
   function openActivityModal(existing, after) {
+    const isEdit = !!(existing && existing.id);
     const f = U.form(activitySpec(existing), existing || {});
     let userPickedType = !!(existing && existing.amcasType);
     f.on('amcasType', 'change', () => { userPickedType = true; });
@@ -118,15 +119,15 @@
     if (!existing) f.get('amcasType').value = amcasTypeFor(f.value('category'));
     const updTrad = () => { const on = !!f.value('tradition'); f.show('traditionSite', on); f.show('endorsement', on); };
     f.on('tradition', 'change', updTrad); updTrad();
-    U.openModal({ title: existing ? 'Edit activity' : 'New activity', body: f.el, sticky: true, actions: [
+    U.openModal({ title: isEdit ? 'Edit activity' : 'New activity', body: f.el, sticky: true, actions: [
       { label: 'Cancel' },
-      { label: existing ? 'Save changes' : 'Create activity', kind: 'primary', onClick: async () => {
+      { label: isEdit ? 'Save changes' : 'Create activity', kind: 'primary', onClick: async () => {
         const v = f.read(); if (!v) return false;
         if (v.end && v.end < v.start) { f.setError('end', 'End date is before the start date'); return false; }
         const doc = Object.assign({}, existing || {}, v, { ongoing: !v.end });
         const saved = await S.save('activities', doc);
-        if (doc.status === 'Completed' && (!existing || existing.status !== 'Completed') && (!doc.contactName || (!doc.contactEmail && !doc.contactPhone))) U.toast('Marked completed. Get an hours letter and a supervisor contact now, while they still remember you.');
-        else U.toast(existing ? 'Activity updated' : 'Activity created');
+        if (doc.status === 'Completed' && (!isEdit || existing.status !== 'Completed') && (!doc.contactName || (!doc.contactEmail && !doc.contactPhone))) U.toast('Marked completed. Get an hours letter and a supervisor contact now, while they still remember you.');
+        else U.toast(isEdit ? 'Activity updated' : 'Activity created');
         if (after) after(saved);
         return true;
       } },
@@ -417,8 +418,8 @@
     if (params && params.id) return renderActivityDetail(main, params.id);
     const A = acts(), L = logs(), cf = countFrom();
     const st = U.App.state.acts = U.App.state.acts || { cat: 'all' };
-    if (params && params.cat) st.cat = params.cat;
-    if (params && params.tradition) st.cat = 'tradition';
+    if (params && params.cat) { st.cat = params.cat; delete params.cat; }
+    if (params && params.tradition) { st.cat = 'tradition'; delete params.tradition; }
     main.appendChild(U.pageHead('Activities', 'Everything you will eventually enter on AMCAS, your resume and the Cornell HPAC letter packet. Keep contacts current while you still see these people every week.', [btn('New activity', { kind: 'primary', icon: 'log', onClick: () => openActivityModal(null, a => U.navigate('activities', { id: a.id })) })]));
     const chips = h('div', { class: 'filter-chips' });
     const mk = (key, label, n) => h('button', { class: 'fchip' + (st.cat === key ? ' active' : ''), type: 'button', onClick: () => { st.cat = key; U.render(); } }, label + (n !== undefined ? ' · ' + n : ''));
@@ -488,7 +489,7 @@
       U.tile({ label: 'Hours all time', value: hrs(hh.all), detail: a.startedInHS ? 'includes high school' : undefined }),
       U.tile({ label: 'Estimated from commitment', value: est ? '~' + C.fmtNum(est) : '—', detail: a.hoursPerWeek ? a.hoursPerWeek + ' h/wk × ' + (a.weeksPerYear || 52) + ' wk/yr' : 'set hours per week to estimate' }),
       U.tile({ label: 'Entries', value: String(L.length), detail: L.length ? 'last: ' + C.fmtDate(L[0].date) : 'nothing logged' })));
-    const ready = C.amcasEntries([a], S.all('logs'), cf)[0];
+    const ready = C.amcasEntries([Object.assign({}, a, { includeAmcas: true })], S.all('logs'), cf)[0];
     const kv = h('dl', { class: 'kv' });
     const add = (k, v) => { if (v) { kv.appendChild(h('dt', null, k)); kv.appendChild(h('dd', null, v)); } };
     add('Contact', [a.contactName, a.contactTitle].filter(Boolean).join(', '));
@@ -533,7 +534,7 @@
     const nextTerms = suggestTerms();
     const all = Array.from(new Set(terms.concat(nextTerms)));
     return [
-      { key: 'term', label: 'Term', type: 'select', options: all.concat(['AP / transfer credit']), required: true, default: existing && existing.term || (terms[0] || nextTerms[0]), help: 'Write "Fall 2027" style names so terms sort correctly.' },
+      { key: 'term', label: 'Term', type: 'select', options: Array.from(new Set(all.concat(['AP / transfer credit']))), required: true, default: existing && existing.term || (terms[0] || nextTerms[0]), help: 'Write "Fall 2027" style names so terms sort correctly.' },
       { key: 'termOther', label: 'Or type a new term', type: 'text', placeholder: 'Summer 2027' },
       { key: 'code', label: 'Course code', type: 'text', required: true, placeholder: 'CHEM 2070' },
       { key: 'title', label: 'Title', type: 'text', placeholder: 'General Chemistry I' },
@@ -743,7 +744,7 @@
       out.push('   Organization: ' + (a.org || a.name) + (a.location ? ' — ' + a.location : ''));
       out.push('   Dates: ' + C.fmtRange(a.start, a.end, a.ongoing));
       out.push('   Hours: ' + Math.round(e.hours.counted) + ' ' + countFromLabel() + (e.hours.all !== e.hours.counted ? ' (' + Math.round(e.hours.all) + ' all time)' : ''));
-      out.push('   Contact: ' + [a.contactName, a.contactTitle, a.contactEmail, a.contactPhone].filter(Boolean).join(', ') || '(none)');
+      out.push('   Contact: ' + ([a.contactName, a.contactTitle, a.contactEmail, a.contactPhone].filter(Boolean).join(', ') || '(none)'));
       out.push('   Description (' + (a.description || '').length + '/' + CFG.amcas.descriptionChars + '): ' + (a.description || '(none)'));
       if (a.mostMeaningful) out.push('   Most meaningful essay (' + (a.meaningfulEssay || '').length + '/' + CFG.amcas.meaningfulChars + '): ' + (a.meaningfulEssay || '(none)'));
       if (hsOnly(a)) out.push('   NOTE: ended before college; AAMC guidance says high-school-only experiences are usually not listed.');
@@ -757,7 +758,7 @@
   }
   const resumeView = { key: 'resume', title: 'Resume & AMCAS', render(main, params) {
     const st = U.App.state.resume = U.App.state.resume || { tab: 'resume', draft: null, label: '' };
-    if (params && params.tab) st.tab = params.tab;
+    if (params && params.tab) { st.tab = params.tab; delete params.tab; }
     main.appendChild(U.pageHead('Resume & AMCAS', 'Keep the resume current here; a draft can be rebuilt from your activities any time. The AMCAS worksheet shows exactly what you will have to type into the application.'));
     const seg = h('div', { class: 'seg', style: { marginBottom: '16px' } }, h('button', { class: st.tab === 'resume' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'resume'; U.render(); } }, 'Resume'), h('button', { class: st.tab === 'amcas' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'amcas'; U.render(); } }, 'AMCAS worksheet'), h('button', { class: st.tab === 'essays' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'essays'; U.render(); } }, 'Essays'));
     main.appendChild(seg);
@@ -780,21 +781,22 @@
       return;
     }
     const cur = currentResume();
-    if (st.draft === null) st.draft = cur ? cur.text : '';
-    const ta = h('textarea', { class: 'textarea tall', id: 'resume-editor', value: st.draft, spellcheck: true, onInput: e => { st.draft = e.target.value; } });
+    if (st.draft === null && cur) st.draft = cur.text || '';
+    const draft = st.draft === null ? '' : st.draft;
+    const ta = h('textarea', { class: 'textarea tall', id: 'resume-editor', value: draft, spellcheck: true, onInput: e => { st.draft = e.target.value; } });
     ta.dataset.rerenderOk = '';
     const label = h('input', { class: 'input', id: 'resume-label', placeholder: 'Version label, e.g. "Fall 2026 – research apps"', value: st.label, onInput: e => { st.label = e.target.value; } });
     main.appendChild(h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' } },
       h('div', { class: 'stack' },
-        h('div', { class: 'row spread' }, h('div', { class: 'card-title' }, cur ? 'Editing from: ' + (cur.label || 'untitled') + ' · ' + C.fmtDate(cur.date || cur.createdAt) : 'No saved version yet'), h('span', { class: 'tiny muted num' }, st.draft.length + ' chars')),
+        h('div', { class: 'row spread' }, h('div', { class: 'card-title' }, cur ? 'Editing from: ' + (cur.label || 'untitled') + ' · ' + C.fmtDate(cur.date || cur.createdAt) : 'No saved version yet'), h('span', { class: 'tiny muted num' }, draft.length + ' chars')),
         ta,
         h('div', { class: 'inline-form' }, h('div', { class: 'field', style: { flex: '1 1 220px' } }, label), btn('Save as new version', { kind: 'primary', icon: 'check', onClick: async () => {
-          if (!st.draft.trim()) { U.toast('Nothing to save', 'bad'); return; }
+          if (!(st.draft || '').trim()) { U.toast('Nothing to save', 'bad'); return; }
           await S.save('resume', { label: st.label || ('Version ' + (S.count('resume') + 1)), date: C.todayISO(), text: st.draft });
           st.label = ''; U.toast('Version saved'); U.render();
-        } }), btn('Copy', { icon: 'copy', onClick: async () => { U.toast((await U.copyText(st.draft)) ? 'Copied' : 'Could not copy'); } }), btn('Rebuild from tracker', { onClick: async () => {
+        } }), btn('Copy', { icon: 'copy', onClick: async () => { U.toast((await U.copyText(st.draft || '')) ? 'Copied' : 'Could not copy'); } }), btn('Rebuild from tracker', { onClick: async () => {
           const gen = generateResume();
-          if (st.draft.trim() && st.draft !== gen) { const ok = await U.confirm({ title: 'Replace the editor text?', text: 'The draft in the editor will be replaced with a resume generated from your activities, awards and publications. Saved versions are not affected.', okLabel: 'Replace' }); if (!ok) return; }
+          if ((st.draft || '').trim() && st.draft !== gen) { const ok = await U.confirm({ title: 'Replace the editor text?', text: 'The draft in the editor will be replaced with a resume generated from your activities, awards and publications. Saved versions are not affected.', okLabel: 'Replace' }); if (!ok) return; }
           st.draft = gen; U.render(); U.toast('Draft rebuilt. Edit, then save a version.');
         } })),
         h('p', { class: 'tiny muted' }, 'Plain text keeps the history small and pastes cleanly into Word or Google Docs. Resume bullets come from each activity\'s edit form.')),
@@ -913,9 +915,18 @@
   const settings = { key: 'settings', title: 'Settings', render(main) {
     const st = S.settings, p = st.profile || {};
     main.appendChild(U.pageHead('Settings', 'Goals, counting rules, your profile and backups.'));
+    // Unsaved edits in one section survive a save (and re-render) in another.
+    const drafts = U.App.state.settingsDrafts = U.App.state.settingsDrafts || {};
+    const draftForm = (name, spec) => {
+      const f = U.form(spec, drafts[name] || {});
+      const record = () => { const o = {}; for (const s of spec) o[s.key] = f.value(s.key); drafts[name] = o; };
+      f.el.addEventListener('input', record); f.el.addEventListener('change', record);
+      f.clearDraft = () => { delete drafts[name]; };
+      return f;
+    };
 
     // counting rule
-    const cfForm = U.form([
+    const cfForm = draftForm('counting', [
       { key: 'rule', label: 'Count hours toward AMCAS from', type: 'radio', full: true, options: [
         { value: CFG.student.hsGraduation, label: 'High school graduation (' + C.fmtDate(CFG.student.hsGraduation) + ')', help: 'Recommended. AMCAS asks for experiences after high school; the summer before college counts.' },
         { value: CFG.student.collegeStart, label: 'First day at Cornell (' + C.fmtDate(CFG.student.collegeStart) + ')', help: 'Stricter: only hours during college.' },
@@ -926,18 +937,18 @@
     ], {});
     const updCustom = () => cfForm.show('custom', cfForm.value('rule') === 'custom');
     cfForm.el.querySelectorAll('input[type=radio]').forEach(r => r.addEventListener('change', updCustom)); updCustom();
-    main.appendChild(U.section('Hour counting', null, h('div', { class: 'card stack' }, cfForm.el, h('div', null, btn('Save counting rule', { kind: 'primary', size: 'sm', onClick: async () => { const v = cfForm.read(); if (!v) return; const cf = v.rule === 'custom' ? v.custom : v.rule; await S.saveSettings({ countFrom: cf }); U.toast('Counting from ' + (cf ? C.fmtDate(cf) : 'the beginning')); } })),
+    main.appendChild(U.section('Hour counting', null, h('div', { class: 'card stack' }, cfForm.el, h('div', null, btn('Save counting rule', { kind: 'primary', size: 'sm', onClick: async () => { const v = cfForm.read(); if (!v) return; const cf = v.rule === 'custom' ? v.custom : v.rule; cfForm.clearDraft(); await S.saveSettings({ countFrom: cf }); U.toast('Counting from ' + (cf ? C.fmtDate(cf) : 'the beginning')); } })),
       h('p', { class: 'tiny muted' }, 'Hours before this date stay in the ledger and show as "all time". Activities that began in high school and continued into college are still listed on AMCAS with their full date range; only the hours you report should match the rule you choose.'))));
 
     // goals
     const goalSpec = CFG.categories.filter(c => ['clinical', 'shadowing', 'service', 'research', 'leadership', 'teaching'].includes(c.key)).map(c => ({ key: c.key, label: c.label + ' (hours)', type: 'number', min: 0, step: 10, default: (st.goals || {})[c.key] }));
-    const gf = U.form(goalSpec, {});
-    main.appendChild(U.section('Hour goals by application time', null, h('div', { class: 'card stack' }, gf.el, h('div', null, btn('Save goals', { kind: 'primary', size: 'sm', onClick: async () => { const v = gf.read(); if (!v) return; const goals = {}; for (const k in v) goals[k] = v[k] === '' ? 0 : v[k]; await S.saveSettings({ goals }); U.toast('Goals saved'); } })), h('p', { class: 'tiny muted' }, 'Set a goal to 0 to hide its tile. Defaults reflect what competitive MD applicants commonly report; schools that emphasize service expect more volunteering.'))));
+    const gf = draftForm('goals', goalSpec);
+    main.appendChild(U.section('Hour goals by application time', null, h('div', { class: 'card stack' }, gf.el, h('div', null, btn('Save goals', { kind: 'primary', size: 'sm', onClick: async () => { const v = gf.read(); if (!v) return; const goals = {}; for (const k in v) goals[k] = v[k] === '' ? 0 : v[k]; gf.clearDraft(); await S.saveSettings({ goals }); U.toast('Goals saved'); } })), h('p', { class: 'tiny muted' }, 'Set a goal to 0 to hide its tile. Defaults reflect what competitive MD applicants commonly report; schools that emphasize service expect more volunteering.'))));
 
     // tradition
     const t = Object.assign({}, CFG.tradition, st.tradition || {});
     const windows = (t.windows && t.windows.length ? t.windows : CFG.tradition.windows);
-    const tf = U.form([
+    const tf = draftForm('tradition', [
       { key: 'workHours', label: 'Paid work hours per year', type: 'number', min: 0, default: t.workHours },
       { key: 'serviceHours', label: 'Service hours per year', type: 'number', min: 0, default: t.serviceHours },
       { key: 'communityHours', label: 'Of which community service (minimum)', type: 'number', min: 0, default: t.communityHours },
@@ -945,7 +956,7 @@
       { key: 'totalHours', label: 'Total hours per year', type: 'number', min: 0, default: t.totalHours },
       { key: 'minGpa', label: 'Minimum cumulative GPA', type: 'number', min: 0, step: 0.1, default: t.minGpa },
     ], {});
-    const wf = U.form(windows.flatMap((w, i) => [
+    const wf = draftForm('windows', windows.flatMap((w, i) => [
       { key: 'label' + i, label: 'Fellowship year ' + (i + 1) + ' label', type: 'text', default: w.label },
       { key: 'from' + i, label: 'Counts from (Sunday before fall classes)', type: 'date', default: w.from },
       { key: 'to' + i, label: 'Counts through (end of spring classes)', type: 'date', default: w.to },
@@ -954,13 +965,14 @@
       h('div', null, btn('Save Tradition settings', { kind: 'primary', size: 'sm', onClick: async () => {
         const v = tf.read(), w = wf.read(); if (!v || !w) return;
         const newWindows = windows.map((x, i) => ({ label: w['label' + i] || x.label, from: w['from' + i] || x.from, to: w['to' + i] || x.to }));
+        tf.clearDraft(); wf.clearDraft();
         await S.saveSettings({ tradition: { workHours: v.workHours || 0, serviceHours: v.serviceHours || 0, communityHours: v.communityHours || 0, flexHours: v.flexHours || 0, totalHours: v.totalHours || 0, minGpa: v.minGpa || 0, windows: newWindows } });
         U.toast('Tradition settings saved');
       } })),
       h('p', { class: 'tiny muted' }, 'Defaults follow the published Cornell Tradition policies: 100 h paid work, 100 h service (15 community), 50 flex, 250 total, 2.3 GPA, academic year only. Confirm each spring with tradition@cornell.edu.'))));
 
     // profile
-    const pf = U.form([
+    const pf = draftForm('profile', [
       { key: 'name', label: 'Name', type: 'text', default: p.name },
       { key: 'email', label: 'Email', type: 'text', default: p.email },
       { key: 'phone', label: 'Phone', type: 'text', default: p.phone },
@@ -978,7 +990,7 @@
       { key: 'mcatScore', label: 'MCAT score (when known)', type: 'text', default: p.mcatScore },
       { key: 'gapYear', label: 'Planning one gap year (apply June 2030, matriculate 2031)', type: 'checkbox', full: true, default: !!p.gapYear, help: 'Shifts the MCAT and application milestones on the Timeline one year later.' },
     ], {});
-    main.appendChild(U.section('Profile', null, h('div', { class: 'card stack' }, pf.el, h('div', null, btn('Save profile', { kind: 'primary', size: 'sm', onClick: async () => { const v = pf.read(); if (!v) return; v.programs = v.programs.split(';').map(s => s.trim()).filter(Boolean); await S.saveSettings({ profile: v }); U.toast('Profile saved'); } })))));
+    main.appendChild(U.section('Profile', null, h('div', { class: 'card stack' }, pf.el, h('div', null, btn('Save profile', { kind: 'primary', size: 'sm', onClick: async () => { const v = pf.read(); if (!v) return; v.programs = v.programs.split(';').map(s => s.trim()).filter(Boolean); pf.clearDraft(); await S.saveSettings({ profile: v }); U.toast('Profile saved'); } })))));
 
     // data
     const counts = S.COLLECTIONS.map(c => S.count(c) + ' ' + c).join(' · ');

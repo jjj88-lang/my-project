@@ -86,8 +86,9 @@
             self._emit();
           }, err => {
             console.error('db subscription error', col, err);
-            self.status = { text: 'Database connection lost (' + (err && err.code || 'error') + '). Reload to reconnect.', kind: 'bad' };
             if (first) { first = false; resolve(); }
+            if (err && (err.code === 'not_granted' || err.code === 'revoked')) { self._degradeToLocal(); return; }
+            self.status = { text: 'Database connection lost (' + (err && err.code || 'error') + '). Reload to reconnect.', kind: 'bad' };
             self._emit();
           });
           self._unsubs.push(unsub);
@@ -138,6 +139,7 @@
 
     // ---------- writes ----------
     async save(col, doc) {
+      if (!this.ready) throw new Error('Still loading; try again in a moment.');
       if (!doc.id) doc.id = uid();
       doc.updatedAt = new Date().toISOString();
       if (!doc.createdAt) doc.createdAt = doc.updatedAt;
@@ -153,12 +155,14 @@
       return clean;
     },
     async remove(col, id) {
+      if (!this.ready) throw new Error('Still loading; try again in a moment.');
       this.data[col].delete(id);
       this._emit();
       if (this.backend === 'db') await this._dbWrite(() => this._db.collection(col).doc(id).delete());
       else this._persistLocal();
     },
     async saveSettings(patch) {
+      if (!this.ready) throw new Error('Still loading; try again in a moment.');
       this.settings = mergeSettings(this.settings, patch || {});
       this.settings.updatedAt = new Date().toISOString();
       this._emit();
@@ -188,9 +192,24 @@
     _writeOk() {
       if (this.status.kind === 'bad') { this.status = { text: 'Synced to your Claude artifact database', kind: 'good' }; this._emit(); }
     },
+    // Access was refused or withdrawn: keep working in this browser instead of pretending to sync.
+    _degradeToLocal() {
+      if (this.backend !== 'db') return;
+      for (const u of this._unsubs) { try { u(); } catch (e) { /* ignore */ } }
+      this._unsubs = [];
+      const current = this.toObject();
+      this.backend = 'local'; this._db = null;
+      this._initLocal();
+      for (const col of COLLECTIONS) for (const doc of current[col]) this.data[col].set(doc.id, doc);
+      this.settings = mergeSettings(this.settings, current.settings);
+      this._persistLocal();
+      this.status = { text: 'Database access was not granted: saving in this browser only. Export a backup from Settings.', kind: 'warn' };
+      this._emit();
+    },
     _writeFailed(e) {
       console.error('write failed', e);
       const code = e && e.code;
+      if (code === 'not_granted' || code === 'revoked') { this._degradeToLocal(); return; }
       if (code === 'quota_exceeded') this.status = { text: 'Database full: delete old entries or export and trim.', kind: 'bad' };
       else if (code === 'invalid_argument') this.status = { text: 'This account can only read this tracker. Changes are not saved.', kind: 'bad' };
       else this.status = { text: 'A save failed (' + (code || 'error') + '). Check your connection and try again.', kind: 'bad' };

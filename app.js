@@ -129,9 +129,9 @@
       const foot = h('div', { class: 'modal-foot' });
       for (const a of o.actions) {
         const b = btn(a.label, { kind: a.kind, class: a.left ? 'left' : '', icon: a.icon, onClick: async () => {
-          if (!a.onClick) { closeModal(); return; }
+          if (!a.onClick) { if (modalState && modalState.back === back) closeModal(); return; }
           b.disabled = true;
-          try { const r = await a.onClick(); if (r !== false) closeModal(); } finally { b.disabled = false; }
+          try { const r = await a.onClick(); if (r !== false && modalState && modalState.back === back) closeModal(); } finally { b.disabled = false; }
         } });
         foot.appendChild(b);
       }
@@ -175,8 +175,10 @@
 
   // ---------- forms ----------
   // spec: [{key,label,type,options,groups,required,placeholder,help,max,min,step,full,tall,rows,default}]
+  let formSeq = 0;
   function form(spec, values) {
     values = values || {};
+    const pfx = 'f' + (++formSeq) + '-';
     const el = h('div', { class: 'form' });
     const inputs = {}, fields = {}, counters = {}, errs = {};
     for (const f of spec) {
@@ -184,17 +186,17 @@
       let input;
       const val = values[f.key] !== undefined && values[f.key] !== null ? values[f.key] : (f.default !== undefined ? f.default : '');
       if (f.type === 'checkbox') {
-        input = h('input', { type: 'checkbox', id: 'f-' + f.key, checked: !!val });
-        const lab = h('label', { class: 'check', for: 'f-' + f.key }, input, h('span', null, f.label, f.help ? h('span', { class: 'help' }, f.help) : null));
+        input = h('input', { type: 'checkbox', id: pfx + f.key, checked: !!val });
+        const lab = h('label', { class: 'check', for: pfx + f.key }, input, h('span', null, f.label, f.help ? h('span', { class: 'help' }, f.help) : null));
         field.appendChild(lab);
         el.appendChild(field); inputs[f.key] = input; fields[f.key] = field;
         continue;
       }
-      const label = h('label', { for: 'f-' + f.key }, h('span', null, f.label, f.required ? ' *' : ''));
+      const label = h('label', { for: pfx + f.key }, h('span', null, f.label, f.required ? ' *' : ''));
       if (f.max) { counters[f.key] = h('span', { class: 'count' }); label.appendChild(counters[f.key]); }
       field.appendChild(label);
       if (f.type === 'select') {
-        input = h('select', { class: 'select', id: 'f-' + f.key });
+        input = h('select', { class: 'select', id: pfx + f.key });
         if (f.placeholder) input.appendChild(h('option', { value: '' }, f.placeholder));
         const addOpts = (parent, opts) => { for (const o of opts) { const ov = typeof o === 'string' ? o : o.value, ol = typeof o === 'string' ? o : o.label; parent.appendChild(h('option', { value: ov }, ol)); } };
         if (f.groups) for (const g of f.groups) { const og = h('optgroup', { label: g.label }); addOpts(og, g.options); input.appendChild(og); }
@@ -202,17 +204,17 @@
         input.value = val;
         if (input.value !== String(val) && val !== '') { input.appendChild(h('option', { value: val }, val)); input.value = val; }
       } else if (f.type === 'textarea') {
-        input = h('textarea', { class: 'textarea' + (f.tall ? ' tall' : ''), id: 'f-' + f.key, placeholder: f.placeholder, rows: f.rows });
+        input = h('textarea', { class: 'textarea' + (f.tall ? ' tall' : ''), id: pfx + f.key, placeholder: f.placeholder, rows: f.rows });
         input.value = val;
       } else if (f.type === 'radio') {
-        input = h('div', { class: 'radio-group', id: 'f-' + f.key });
+        input = h('div', { class: 'radio-group', id: pfx + f.key });
         for (const o of f.options) {
           const ov = typeof o === 'string' ? o : o.value, ol = typeof o === 'string' ? o : o.label;
-          const r = h('input', { type: 'radio', name: 'f-' + f.key, value: ov, checked: String(val) === String(ov) });
+          const r = h('input', { type: 'radio', name: pfx + f.key, value: ov, checked: String(val) === String(ov) });
           input.appendChild(h('label', { class: 'check' }, r, h('span', null, ol, o.help ? h('span', { class: 'help' }, o.help) : null)));
         }
       } else {
-        input = h('input', { class: 'input', id: 'f-' + f.key, type: f.type || 'text', placeholder: f.placeholder, min: f.min, max: f.type === 'number' ? f.max : undefined, step: f.step, inputmode: f.type === 'number' ? 'decimal' : undefined, autocomplete: 'off' });
+        input = h('input', { class: 'input', id: pfx + f.key, type: f.type || 'text', placeholder: f.placeholder, min: f.min, max: f.type === 'number' ? f.max : undefined, step: f.step, inputmode: f.type === 'number' ? 'decimal' : undefined, autocomplete: 'off' });
         input.value = val;
       }
       field.appendChild(input);
@@ -269,13 +271,16 @@
       } catch (e2) { return false; }
     }
   }
+  function isFramed() { try { return window.self !== window.top; } catch (e) { return true; } }
   async function saveFile(filename, text) {
     let dl = null;
     try { if (window.claude && window.claude.use) dl = await window.claude.use('downloads'); } catch (e) { dl = null; }
     if (dl) {
       try { await dl.save({ filename, data: text }); return 'saved'; }
-      catch (e) { if (e && e.code === 'declined') return 'declined'; console.error(e); }
+      catch (e) { if (e && e.code === 'declined') return 'declined'; console.error(e); return 'failed'; }
     }
+    // A plain download link is inert inside the artifact viewer: say so instead of claiming success.
+    if (isFramed()) return 'failed';
     try {
       const blob = new Blob([text], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
@@ -348,8 +353,8 @@
     if (App.view !== key) {
       App.view = key;
       if (location.hash !== '#' + key) { try { history.replaceState(null, '', '#' + key); } catch (e) { location.hash = key; } }
-      window.scrollTo(0, 0);
     }
+    window.scrollTo(0, 0);
     closeSheet();
     render();
   }
@@ -407,6 +412,7 @@
     document.getElementById('topbar-title').textContent = v.title;
     document.title = v.title + ' · ' + CFG.appName;
     main.textContent = '';
+    if (!S.ready) { main.appendChild(h('div', { class: 'empty' }, 'Loading your ledger…')); renderNav(); renderStatus(); App.renderPending = false; return; }
     try { v.render(main, App.params); }
     catch (e) { console.error(e); main.appendChild(h('div', { class: 'empty' }, 'Something went wrong rendering this page. ', h('code', null, String(e && e.message || e)))); }
     renderNav();
@@ -435,12 +441,15 @@
     App.view = viewFromHash();
     const profile = CFG.student;
     document.getElementById('brand-sub').textContent = (profile.name.split(' ')[0] || '') + " · Cornell '" + String(profile.classYear).slice(2);
-    document.getElementById('quick-log').addEventListener('click', () => window.PMT_VIEWS.openLogModal());
+    const quick = document.getElementById('quick-log');
+    quick.disabled = true;
+    quick.addEventListener('click', () => { if (S.ready) window.PMT_VIEWS.openLogModal(); });
     window.addEventListener('hashchange', () => { const k = viewFromHash(); if (k !== App.view) { App.view = k; App.params = {}; render(); } });
     renderNav(); renderStatus();
     document.getElementById('main').appendChild(h('div', { class: 'empty' }, 'Loading your ledger…'));
     S.subscribe(scheduleRender);
     await S.init();
+    quick.disabled = false;
     render();
   }
 
