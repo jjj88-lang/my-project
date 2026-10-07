@@ -26,6 +26,8 @@
     return groups;
   }
   function amcasTypeFor(category) { const c = U.cat(category); return c.amcas[0]; }
+  function hsOnly(a) { return !!(a.end && a.end <= CFG.student.hsGraduation); }
+  function hsEra(dateStr) { return !!(dateStr && dateStr < CFG.student.hsGraduation); }
   function tradLabel(kind) { const k = CFG.traditionKinds.find(x => x.value === kind); return k ? k.label.split(' (')[0] : kind; }
 
   // ---------- log form (shared by the Log page, the top bar and activity pages) ----------
@@ -35,7 +37,7 @@
       { key: 'activityId', label: 'Activity', type: 'select', groups: activityGroups(!!existing.id), placeholder: 'Choose an activity…', required: true, default: defaults.activityId, full: true },
       { key: 'date', label: 'Date', type: 'date', required: true, default: C.todayISO() },
       { key: 'hours', label: 'Hours', type: 'number', step: 0.25, min: 0, required: true, placeholder: '2.5', validate: v => v === 0 ? 'Enter more than 0' : '' },
-      { key: 'endDate', label: 'End date (optional, for a whole week or month)', type: 'date', help: 'Leave blank for a single day. Use a range when you log a block of hours at once; the start date decides which month it counts in.' },
+      { key: 'endDate', label: 'End date (optional, for a whole week or month)', type: 'date', help: 'Leave blank for a single day. For a block of hours logged at once, the hours are spread evenly across the days, so a block that crosses a semester or summer boundary is split correctly.' },
       { key: 'physician', label: 'Physician', type: 'text', placeholder: 'Dr. Jane Smith' },
       { key: 'specialty', label: 'Specialty', type: 'text', placeholder: 'Anesthesiology' },
       { key: 'setting', label: 'Setting', type: 'text', placeholder: 'Operating room, outpatient clinic, ED…' },
@@ -81,7 +83,7 @@
   function activitySpec(existing) {
     existing = existing || {};
     return [
-      { key: 'name', label: 'Activity name', type: 'text', required: true, placeholder: 'Stormont Vail Health', full: true, max: CFG.amcas.nameChars, help: 'How it should appear on AMCAS (60 characters) and your resume.' },
+      { key: 'name', label: 'Activity name', type: 'text', required: true, placeholder: 'Stormont Vail Health', full: true, max: CFG.amcas.nameChars, help: 'How it should appear on AMCAS and your resume. Advisors report a 60-character limit in the AMCAS form.' },
       { key: 'org', label: 'Organization', type: 'text', placeholder: 'Cornell Health, Weill Cornell, a lab name…' },
       { key: 'role', label: 'Your role / title', type: 'text', placeholder: 'Volunteer, Research Assistant, Co-Founder' },
       { key: 'category', label: 'Tracker category', type: 'select', options: CFG.categories.map(c => ({ value: c.key, label: c.label })), required: true, default: 'clinical' },
@@ -123,7 +125,8 @@
         if (v.end && v.end < v.start) { f.setError('end', 'End date is before the start date'); return false; }
         const doc = Object.assign({}, existing || {}, v, { ongoing: !v.end });
         const saved = await S.save('activities', doc);
-        U.toast(existing ? 'Activity updated' : 'Activity created');
+        if (doc.status === 'Completed' && (!existing || existing.status !== 'Completed') && (!doc.contactName || (!doc.contactEmail && !doc.contactPhone))) U.toast('Marked completed. Get an hours letter and a supervisor contact now, while they still remember you.');
+        else U.toast(existing ? 'Activity updated' : 'Activity created');
         if (after) after(saved);
         return true;
       } },
@@ -214,6 +217,8 @@
     const specialties = new Set(L.filter(l => l.specialty).map(l => l.specialty.trim().toLowerCase()));
     const shadowLogs = L.filter(l => { const a = actById(l.activityId); return a && a.category === 'shadowing'; });
     if (shadowLogs.length && specialties.size < 2) todos.push({ text: 'Shadowing covers ' + (specialties.size || 'no named') + ' specialt' + (specialties.size === 1 ? 'y' : 'ies') + '. Add a primary care physician (family medicine, internal medicine, pediatrics) to show breadth.', go: () => U.navigate('activities') });
+    for (const c of S.all('certs')) { const stt = certStatus(c); if (stt.kind === 'bad' || stt.kind === 'warn') todos.push({ text: (c.name === 'Other' ? c.nameOther : c.name) + ': ' + stt.label.toLowerCase() + '. Renew before your next clinical start date.', go: () => U.navigate('awards') }); }
+    for (const a of S.all('awards')) { if (!a.renewalDue) continue; const days = C.daysBetween(C.parseISO(C.todayISO()), C.parseISO(a.renewalDue)); if (days <= 45) todos.push({ text: a.name + ' renewal is due ' + C.fmtDate(a.renewalDue) + (days < 0 ? ' (overdue)' : '') + '.', go: () => U.navigate('awards') }); }
     const jl = S.all('journal').sort((a, b) => (b.date || '').localeCompare(a.date || ''))[0];
     const jcut = C.toISO(new Date(Date.now() - 30 * 86400000));
     if (!jl || jl.date < jcut) todos.push({ text: 'No reflection in the last 30 days. A five-minute entry after a shift is what secondaries are written from.', go: () => U.navigate('journal') });
@@ -294,7 +299,7 @@
         row('Service', cur.service, tcfg.serviceHours, 'community ' + hrs(cur.community) + ' / ' + tcfg.communityHours + ' h, campus ' + hrs(cur.campus) + ' h'),
         row('Flex (work or service above the floors)', cur.flex, tcfg.flexHours),
         row('Total', cur.total, tcfg.totalHours),
-        h('p', { class: 'tiny muted' }, 'Fellowship year ' + C.fmtDate(cur.from) + ' – ' + C.fmtDate(cur.to) + '. Only academic-year hours count; summer never does. Tag activities as work, community or campus service to count them here.' + (trad.outside ? ' ' + hrs(trad.outside) + ' tagged hours fall outside every fellowship year and do not count.' : ''))));
+        h('p', { class: 'tiny muted' }, 'Fellowship year ' + C.fmtDate(cur.from) + ' – ' + C.fmtDate(cur.to) + ' (estimated dates; confirm with tradition@cornell.edu and adjust in Settings). Only academic-year hours count; summer never does. Tag activities as work, community or campus service to count them here.' + (trad.outside ? ' ' + hrs(trad.outside) + ' tagged hours fall outside every fellowship year and do not count.' : ''))));
     }
     main.appendChild(U.section('Academics & fellowship', null, h('div', { class: 'grid grid-2' },
       h('div', { class: 'card' }, h('div', { class: 'card-head' }, h('div', { class: 'card-title' }, 'GPA'), btn('Academics', { size: 'xs', kind: 'ghost', onClick: () => U.navigate('academics') })),
@@ -443,7 +448,7 @@
       h('div', { class: 'hours' }, h('div', { class: 'v num' }, hrs(hh.counted)), h('div', { class: 'l' }, 'h ' + countFromLabel()))));
     const meta = [catChip(a.category), statusChip(a.status), chip(C.fmtRange(a.start, a.end, a.ongoing), 'outline')];
     if (a.tradition) meta.push(chip('Tradition · ' + tradLabel(a.tradition), 'accent'));
-    if (a.startedInHS) meta.push(chip('Began in HS', 'outline'));
+    if (hsOnly(a)) meta.push(chip('Ended before college', 'warn')); else if (a.startedInHS) meta.push(chip('Began in HS', 'outline'));
     card.appendChild(h('div', { class: 'chip-row' }, meta));
     const foot = [];
     if (hh.all !== hh.counted) foot.push(h('span', { class: 'tiny muted' }, hrs(hh.all) + ' h all time'));
@@ -476,7 +481,7 @@
       btn('Edit', { icon: 'edit', onClick: () => openActivityModal(a) }),
       btn('', { icon: 'trash', kind: 'danger', title: 'Delete activity', onClick: async () => { if (await deleteActivity(a)) U.navigate('activities'); } }),
     ]));
-    main.appendChild(h('div', { class: 'chip-row', style: { marginBottom: '14px' } }, catChip(a.category), statusChip(a.status), chip(C.fmtRange(a.start, a.end, a.ongoing), 'outline'), a.amcasType ? chip(CFG.amcasTypeAliases[a.amcasType] || a.amcasType, 'outline') : null, a.tradition ? chip('Tradition · ' + tradLabel(a.tradition) + (a.endorsement ? ' · endorsement ' + a.endorsement.toLowerCase() : ''), 'accent') : null, a.startedInHS ? chip('Began in high school', 'outline') : null, a.includeAmcas === false ? chip('Not on AMCAS', 'warn') : null));
+    main.appendChild(h('div', { class: 'chip-row', style: { marginBottom: '14px' } }, catChip(a.category), statusChip(a.status), chip(C.fmtRange(a.start, a.end, a.ongoing), 'outline'), a.amcasType ? chip(CFG.amcasTypeAliases[a.amcasType] || a.amcasType, 'outline') : null, a.tradition ? chip('Tradition · ' + tradLabel(a.tradition) + (a.endorsement ? ' · endorsement ' + a.endorsement.toLowerCase() : ''), 'accent') : null, hsOnly(a) ? chip('Ended before college: AMCAS guidance says high-school-only experiences are usually not listed', 'warn') : a.startedInHS ? chip('Began in high school', 'outline') : null, a.includeAmcas === false ? chip('Not on AMCAS', 'warn') : null));
     const months = C.monthlySeries([a], L, 12);
     main.appendChild(h('div', { class: 'grid grid-kpi' },
       U.tile({ label: 'Hours ' + countFromLabel(), value: hrs(hh.counted) }),
@@ -499,6 +504,24 @@
       ready.missing.length ? h('div', { class: 'todo' }, icon('warn', 'ic-sm'), h('span', null, 'Missing for AMCAS: ' + ready.missing.join(', '))) : h('div', { class: 'chip-row' }, chip('AMCAS fields complete', 'good', { icon: 'check' })),
       h('div', null, h('div', { class: 'eyebrow', style: { margin: '6px 0 4px' } }, 'Hours per month'), CH.barChart({ rows: months.map(m => ({ label: m.label, value: C.round1(m.total) })), unit: 'h', height: 150, labelHeader: 'Month' })));
     main.appendChild(h('div', { class: 'grid grid-2', style: { marginTop: '14px' } }, left, right));
+    if (a.category === 'shadowing' && L.length) {
+      const byPhys = {};
+      for (const l of L) {
+        const key = ((l.physician || '').trim() || 'Physician not recorded') + '|' + (l.specialty || '').trim();
+        if (!byPhys[key]) byPhys[key] = { physician: (l.physician || '').trim() || 'Physician not recorded', specialty: (l.specialty || '').trim(), settings: new Set(), hours: 0, sessions: 0, first: l.date, last: l.date };
+        const r = byPhys[key]; r.hours += Number(l.hours) || 0; r.sessions += 1; if (l.setting) r.settings.add(l.setting);
+        if (l.date < r.first) r.first = l.date; if (l.date > r.last) r.last = l.date;
+      }
+      const rows = Object.values(byPhys).sort((x, y) => y.hours - x.hours);
+      main.appendChild(U.section('Physicians shadowed', null, U.table({ cols: [
+        { label: 'Physician', render: r => h('span', { class: r.physician === 'Physician not recorded' ? 'muted' : 'b' }, r.physician) },
+        { label: 'Specialty', render: r => h('span', null, r.specialty || '—', r.specialty && CFG.primaryCareWords.some(w => r.specialty.toLowerCase().includes(w)) ? chip('primary care', 'good') : null) },
+        { label: 'Setting', render: r => Array.from(r.settings).join(', ') },
+        { label: 'Sessions', num: true, render: r => String(r.sessions) },
+        { label: 'Hours', num: true, render: r => hrs(r.hours) },
+        { label: 'Dates', render: r => r.first === r.last ? C.fmtDate(r.first) : C.fmtDate(r.first) + ' – ' + C.fmtDate(r.last) },
+      ], rows }), h('p', { class: 'tiny muted', style: { marginTop: '6px' } }, 'Interviewers and secondaries ask who you shadowed and for how long. Record the physician and specialty on every entry.')));
+    }
     const list = h('div', { class: 'list' });
     for (const l of L) list.appendChild(logItem(l, { hideActivity: true }));
     main.appendChild(U.section('Logged entries · ' + L.length, [btn('Log hours', { size: 'sm', icon: 'log', onClick: () => openLogModal({ activityId: a.id }) })], L.length ? list : U.empty('Nothing logged for this activity yet.')));
@@ -587,7 +610,7 @@
       h('div', null, h('div', { class: 'b' }, p.label), h('div', { class: 'hint' }, p.courses.length ? p.courses.map(c => c.code + (c.grade && c.grade !== 'IP' ? ' (' + c.grade + ')' : ' (in progress)')).join(', ') : p.hint)),
       chip(p.state === 'done' ? 'Done' : p.state === 'progress' ? 'In progress' : 'Not yet', p.state === 'done' ? 'good' : p.state === 'progress' ? 'warn' : 'outline')));
     main.appendChild(U.section('MD prerequisites', null, list, h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, 'Detected from course codes; pin a course to a requirement in its edit form when the match is wrong. Requirements vary by school: check each school\'s list in the MSAR before applying.')));
-    main.appendChild(U.section('How the GPAs differ', null, h('div', { class: 'note' }, h('b', null, 'Cornell'), ' counts A+ as 4.3 and excludes S/U, W and INC. ', h('b', null, 'AMCAS'), ' recomputes every grade you ever received: A+ becomes 4.0, every attempt of a repeated course counts, S and AP credit are excluded (reported as supplemental hours), and a U may be computed as an F. It splits the result into BCPM (biology, chemistry, physics, math) and AO (all other) by course content, and by year (FR, SO, JR, SR). The BCPM GPA is what admissions committees screen on first. The Bio Sci major requires letter grades for every major course; CALS first-years may take one elective S/U per semester.')));
+    main.appendChild(U.section('How the GPAs differ', null, h('div', { class: 'note' }, h('b', null, 'Cornell'), ' counts A+ as 4.3 and excludes S/U, W and INC. ', h('b', null, 'AMCAS'), ' recomputes every grade you ever received: A+ becomes 4.0, every attempt of a repeated course counts, S and AP credit are excluded (reported as supplemental hours), and a U may be computed as an F. It splits the result into BCPM (biology, chemistry, physics, math) and AO (all other) by course content, and by year: AMCAS assigns FR/SO/JR/SR by cumulative credits (0–35, 36–65, 66–95, 96+), so the year chips here, which follow the academic year, are a guide only. The BCPM GPA is what admissions committees screen on first. The Bio Sci major requires letter grades for every major course; CALS first-years may take one elective S/U per semester.')));
   } };
 
   // ---------- RESEARCH & PUBLICATIONS ----------
@@ -613,7 +636,7 @@
     for (const a of A) grid.appendChild(activityCard(a, L, cf));
     main.appendChild(U.section('Research experiences', null, A.length ? grid : U.empty('No research activity yet. Add the lab or project first, then log hours against it.')));
     const list = h('div', { class: 'list' });
-    for (const p of pubs) list.appendChild(U.listItem({ title: p.title, sub: [p.role, p.venue].filter(Boolean).join(' · '), meta: [chip(p.type, p.type === 'Publication' ? 'good' : p.type.includes('review') ? 'warn' : 'outline'), p.date ? C.fmtDate(p.date, { month: 'short', year: 'numeric' }) : null, p.advisor ? 'with ' + p.advisor : null, p.url ? h('a', { href: p.url, target: '_blank', rel: 'noopener' }, 'link') : null], actions: editDeleteButtons(() => openDocModal('pubs', 'publication', pubSpec(), p), () => deleteDoc('pubs', p.id, p.title)) }));
+    for (const p of pubs) list.appendChild(U.listItem({ title: p.title, sub: [p.role, p.venue].filter(Boolean).join(' · '), meta: [chip(p.type, p.type === 'Publication' ? 'good' : p.type.includes('review') ? 'warn' : 'outline'), hsEra(p.date) ? chip('High-school era', 'outline') : null, p.date ? C.fmtDate(p.date, { month: 'short', year: 'numeric' }) : null, p.advisor ? 'with ' + p.advisor : null, p.url ? h('a', { href: p.url, target: '_blank', rel: 'noopener' }, 'link') : null], actions: editDeleteButtons(() => openDocModal('pubs', 'publication', pubSpec(), p), () => deleteDoc('pubs', p.id, p.title)) }));
     main.appendChild(U.section('Publications, posters & presentations · ' + pubs.length, null, pubs.length ? list : U.empty('Nothing yet. Posters and talks count; add them as soon as they are accepted.')));
     main.appendChild(U.section('', null, h('div', { class: 'note' }, 'AMCAS lists ', h('b', null, 'Publications'), ', ', h('b', null, 'Presentations/Posters'), ' and ', h('b', null, 'Conferences Attended'), ' as separate experience types. Keep full citations here so you can paste them later; a manuscript under review is listed as "submitted", never as published.')));
   } };
@@ -628,15 +651,45 @@
       { key: 'amount', label: 'Amount ($, if a scholarship)', type: 'number', min: 0, step: 1 },
       { key: 'selectivity', label: 'Selectivity', type: 'text', placeholder: '1 of 10 from 13,000 applicants', full: true },
       { key: 'description', label: 'Description', type: 'textarea', full: true, rows: 3, placeholder: 'What it recognizes and why you got it.' },
+      { key: 'renewalDue', label: 'Next renewal deadline (if renewable)', type: 'date' },
+      { key: 'renewalConditions', label: 'Renewal conditions', type: 'text', placeholder: 'Full-time enrollment, GPA floor, annual form…' },
     ];
+  }
+  function certSpec() {
+    return [
+      { key: 'name', label: 'Certification or training', type: 'select', options: CFG.certSuggestions.concat(['Other']), required: true, full: true },
+      { key: 'nameOther', label: 'If other, name it', type: 'text', full: true },
+      { key: 'issuer', label: 'Issuer', type: 'text', placeholder: 'American Heart Association' },
+      { key: 'credential', label: 'Credential / card number', type: 'text' },
+      { key: 'issued', label: 'Issued on', type: 'date' },
+      { key: 'expires', label: 'Expires on', type: 'date', help: 'BLS cards usually run two years, CITI training three.' },
+      { key: 'notes', label: 'Notes', type: 'text', full: true, placeholder: 'Where the PDF is saved, which site required it.' },
+    ];
+  }
+  function certStatus(c) {
+    if (!c.expires) return { label: 'No expiry', kind: 'outline' };
+    const days = C.daysBetween(C.parseISO(C.todayISO()), C.parseISO(c.expires));
+    if (days < 0) return { label: 'Expired ' + C.fmtDate(c.expires), kind: 'bad', days };
+    if (days <= 60) return { label: 'Expires in ' + days + ' days', kind: 'warn', days };
+    return { label: 'Valid until ' + C.fmtDate(c.expires), kind: 'good', days };
   }
   const awards = { key: 'awards', title: 'Honors & awards', render(main) {
     const list = S.all('awards').sort((a, b) => (b.date || '').localeCompare(a.date || ''));
-    main.appendChild(U.pageHead('Honors & awards', 'Scholarships, dean\'s list, competition results, fellowships. AMCAS groups these under one "Honors/Awards/Recognitions" entry, so the details live here.', [btn('Add award', { kind: 'primary', icon: 'log', onClick: () => openDocModal('awards', 'award', awardSpec()) })]));
+    main.appendChild(U.pageHead('Honors, awards & certifications', 'Scholarships, fellowships, competition results, and the certifications clinical sites ask for. AMCAS groups honors under one "Honors/Awards/Recognition" entry, so the details live here.', [btn('Add award', { kind: 'primary', icon: 'log', onClick: () => openDocModal('awards', 'award', awardSpec()) }), btn('Add certification', { icon: 'log', onClick: () => openCertModal() })]));
     const el = h('div', { class: 'list' });
-    for (const a of list) el.appendChild(U.listItem({ title: a.name, sub: [a.org, a.selectivity].filter(Boolean).join(' · '), meta: [chip(a.level || 'Other', 'outline'), a.date ? C.fmtDate(a.date, { month: 'short', year: 'numeric' }) : 'date not set', a.amount ? '$' + C.fmtNum(a.amount) : null, a.description ? h('span', { class: 'text-wrap' }, a.description) : null], actions: editDeleteButtons(() => openDocModal('awards', 'award', awardSpec(), a), () => deleteDoc('awards', a.id, a.name)) }));
-    main.appendChild(U.section('', null, list.length ? el : U.empty('No honors yet. Dean\'s list each semester counts.')));
+    for (const a of list) el.appendChild(U.listItem({ title: a.name, sub: [a.org, a.selectivity].filter(Boolean).join(' · '), meta: [chip(a.level || 'Other', 'outline'), hsEra(a.date) ? chip('High-school era', 'outline') : null, a.date ? C.fmtDate(a.date, { month: 'short', year: 'numeric' }) : 'date not set', a.amount ? '$' + C.fmtNum(a.amount) : null, a.renewalDue ? chip('Renewal due ' + C.fmtDate(a.renewalDue), C.daysBetween(C.parseISO(C.todayISO()), C.parseISO(a.renewalDue)) <= 45 ? 'warn' : 'outline') : null, a.description ? h('span', { class: 'text-wrap' }, a.description) : null, a.renewalConditions ? h('span', { class: 'text-wrap' }, 'Renewal: ' + a.renewalConditions) : null], actions: editDeleteButtons(() => openDocModal('awards', 'award', awardSpec(), a), () => deleteDoc('awards', a.id, a.name)) }));
+    main.appendChild(U.section('Honors & awards · ' + list.length, null, list.length ? el : U.empty('No honors yet. Latin honors and scholarships count.')));
+    const certs = S.all('certs').sort((a, b) => (a.expires || '9999').localeCompare(b.expires || '9999'));
+    const cl = h('div', { class: 'list' });
+    for (const c of certs) { const stt = certStatus(c); cl.appendChild(U.listItem({ title: c.name === 'Other' ? (c.nameOther || 'Certification') : c.name, sub: [c.issuer, c.credential].filter(Boolean).join(' · '), meta: [chip(stt.label, stt.kind), c.issued ? 'issued ' + C.fmtDate(c.issued) : null, c.notes], actions: editDeleteButtons(() => openCertModal(c), () => deleteDoc('certs', c.id, c.name)) })); }
+    main.appendChild(U.section('Certifications & training · ' + certs.length, null, certs.length ? cl : U.empty('None yet. BLS/CPR, HIPAA and CITI training are the usual first three; log expiry dates so renewals never lapse before a clinical start date.')));
   } };
+  function openCertModal(existing) {
+    const f = U.form(certSpec(), existing || {});
+    const upd = () => f.show('nameOther', f.value('name') === 'Other');
+    f.on('name', 'change', upd); upd();
+    U.openModal({ title: existing ? 'Edit certification' : 'Add certification', body: f.el, sticky: true, actions: [{ label: 'Cancel' }, { label: 'Save', kind: 'primary', onClick: async () => { const v = f.read(); if (!v) return false; if (v.issued && v.expires && v.expires < v.issued) { f.setError('expires', 'Expires before it was issued'); return false; } await S.save('certs', Object.assign({}, existing || {}, v)); U.toast('Saved'); return true; } }] });
+  }
 
   // ---------- RESUME & AMCAS ----------
   function currentResume() { return S.all('resume').sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))[0] || null; }
@@ -693,6 +746,7 @@
       out.push('   Contact: ' + [a.contactName, a.contactTitle, a.contactEmail, a.contactPhone].filter(Boolean).join(', ') || '(none)');
       out.push('   Description (' + (a.description || '').length + '/' + CFG.amcas.descriptionChars + '): ' + (a.description || '(none)'));
       if (a.mostMeaningful) out.push('   Most meaningful essay (' + (a.meaningfulEssay || '').length + '/' + CFG.amcas.meaningfulChars + '): ' + (a.meaningfulEssay || '(none)'));
+      if (hsOnly(a)) out.push('   NOTE: ended before college; AAMC guidance says high-school-only experiences are usually not listed.');
       if (e.missing.length) out.push('   MISSING: ' + e.missing.join(', '));
     });
     const awardsList = S.all('awards');
@@ -705,8 +759,9 @@
     const st = U.App.state.resume = U.App.state.resume || { tab: 'resume', draft: null, label: '' };
     if (params && params.tab) st.tab = params.tab;
     main.appendChild(U.pageHead('Resume & AMCAS', 'Keep the resume current here; a draft can be rebuilt from your activities any time. The AMCAS worksheet shows exactly what you will have to type into the application.'));
-    const seg = h('div', { class: 'seg', style: { marginBottom: '16px' } }, h('button', { class: st.tab === 'resume' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'resume'; U.render(); } }, 'Resume'), h('button', { class: st.tab === 'amcas' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'amcas'; U.render(); } }, 'AMCAS worksheet'));
+    const seg = h('div', { class: 'seg', style: { marginBottom: '16px' } }, h('button', { class: st.tab === 'resume' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'resume'; U.render(); } }, 'Resume'), h('button', { class: st.tab === 'amcas' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'amcas'; U.render(); } }, 'AMCAS worksheet'), h('button', { class: st.tab === 'essays' ? 'active' : '', type: 'button', onClick: () => { st.tab = 'essays'; U.render(); } }, 'Essays'));
     main.appendChild(seg);
+    if (st.tab === 'essays') { renderEssays(main, st); return; }
     if (st.tab === 'amcas') {
       const entries = C.amcasEntries(acts(), S.all('logs'), countFrom());
       const text = amcasWorksheet();
@@ -717,7 +772,7 @@
         { label: 'Dates', render: r => C.fmtRange(r.activity.start, r.activity.end, r.activity.ongoing) },
         { label: 'Hours', num: true, render: r => h('span', null, String(Math.round(r.hours.counted)), r.hours.all !== r.hours.counted ? h('div', { class: 'tiny muted' }, Math.round(r.hours.all) + ' all') : null) },
         { label: 'Description', render: r => h('span', { class: (r.activity.description || '').length > CFG.amcas.descriptionChars ? 'err' : (r.activity.description ? '' : 'muted') }, (r.activity.description || '').length + '/' + CFG.amcas.descriptionChars) },
-        { label: 'Missing', render: r => r.missing.length ? h('span', { class: 'tiny', style: { color: 'var(--warn-ink)' } }, r.missing.join(', ')) : chip('Ready', 'good') },
+        { label: 'Missing', render: r => h('span', null, hsOnly(r.activity) ? chip('Ended before college', 'warn') : null, r.missing.length ? h('span', { class: 'tiny', style: { color: 'var(--warn-ink)' } }, (hsOnly(r.activity) ? ' ' : '') + r.missing.join(', ')) : (hsOnly(r.activity) ? null : chip('Ready', 'good'))) },
       ], rows: entries, onRow: r => U.navigate('activities', { id: r.activity.id }) });
       tbl.querySelectorAll('tbody tr').forEach((tr, i) => { tr.firstChild.textContent = String(i + 1); });
       main.appendChild(tbl);
@@ -746,6 +801,25 @@
       h('div', { class: 'stack' }, h('div', { class: 'card-title' }, 'Versions'), versionsList(st))));
     main.appendChild(U.section('Tips', null, h('div', { class: 'note' }, 'Update this every semester, not the week before an application. Add numbers to bullets (patients, hours, people led, dollars raised). Keep one line per role for commitment: "3 hrs/wk, 47 wks/yr" matches how AMCAS asks for it.')));
   } };
+  function renderEssays(main, st) {
+    st.essays = st.essays || {};
+    const essays = [
+      { id: 'personal-statement', title: 'Personal statement (AMCAS Personal Comments)', max: CFG.amcas.personalStatementChars, help: 'Why medicine, in your own moments. Draft from the journal; the limit includes spaces. Plain text only: AMCAS strips formatting.' },
+      { id: 'other-impactful', title: 'Other impactful experiences', max: CFG.amcas.otherImpactfulChars, help: 'Optional AMCAS essay about challenges or context (family, finances, community, education) that shaped you.' },
+    ];
+    const grid = h('div', { class: 'stack' });
+    for (const e of essays) {
+      const doc = S.get('essays', e.id);
+      const text = st.essays[e.id] !== undefined ? st.essays[e.id] : (doc ? doc.text || '' : '');
+      const counter = h('span', { class: 'tiny muted num' }, text.length + ' / ' + e.max);
+      const ta = h('textarea', { class: 'textarea tall', id: 'essay-' + e.id, value: text, spellcheck: true, onInput: ev => { st.essays[e.id] = ev.target.value; counter.textContent = ev.target.value.length + ' / ' + e.max; counter.classList.toggle('err', ev.target.value.length > e.max); } });
+      const save = async () => { const cur = S.get('essays', e.id); if (cur && cur.text === (st.essays[e.id] !== undefined ? st.essays[e.id] : cur.text)) return; await S.save('essays', { id: e.id, text: st.essays[e.id] !== undefined ? st.essays[e.id] : text }); U.toast('Essay saved'); };
+      grid.appendChild(h('div', { class: 'card stack' }, h('div', { class: 'row spread' }, h('div', { class: 'card-title' }, e.title), counter), h('p', { class: 'tiny muted' }, e.help), ta,
+        h('div', { class: 'row' }, btn('Save', { kind: 'primary', size: 'sm', icon: 'check', onClick: save }), btn('Copy', { size: 'sm', icon: 'copy', onClick: async () => { U.toast((await U.copyText(ta.value)) ? 'Copied' : 'Could not copy'); } }), doc && doc.updatedAt ? h('span', { class: 'tiny muted' }, 'last saved ' + C.fmtDate(doc.updatedAt.slice(0, 10))) : null)));
+    }
+    main.appendChild(grid);
+    main.appendChild(U.section('', null, h('div', { class: 'note' }, 'Start the personal statement the summer before you apply, from the specific moments in your journal. Readers want one or two scenes that show why medicine, not a list of activities. Characters count with spaces; AMCAS will not let you edit after submission.')));
+  }
   function versionsList(st) {
     const vs = S.all('resume').sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''));
     if (!vs.length) return U.empty('No versions saved. Rebuild from the tracker or paste your current resume, then save.');
@@ -876,7 +950,7 @@
       { key: 'from' + i, label: 'Counts from (Sunday before fall classes)', type: 'date', default: w.from },
       { key: 'to' + i, label: 'Counts through (end of spring classes)', type: 'date', default: w.to },
     ]), {});
-    main.appendChild(U.section('Cornell Tradition', null, h('div', { class: 'card stack' }, h('div', { class: 'card-title' }, 'Annual targets'), tf.el, h('div', { class: 'card-title', style: { marginTop: '8px' } }, 'Fellowship-year windows'), h('p', { class: 'tiny muted' }, 'Hours count only between these dates. The program announces the exact dates each year; update them here.'), wf.el,
+    main.appendChild(U.section('Cornell Tradition', null, h('div', { class: 'card stack' }, h('div', { class: 'card-title' }, 'Annual targets'), tf.el, h('div', { class: 'card-title', style: { marginTop: '8px' } }, 'Fellowship-year windows'), h('p', { class: 'tiny muted' }, 'Hours count only between these dates. The defaults are estimates (the Sunday before fall classes through early May); the program announces the exact dates each year, so update them here.'), wf.el,
       h('div', null, btn('Save Tradition settings', { kind: 'primary', size: 'sm', onClick: async () => {
         const v = tf.read(), w = wf.read(); if (!v || !w) return;
         const newWindows = windows.map((x, i) => ({ label: w['label' + i] || x.label, from: w['from' + i] || x.from, to: w['to' + i] || x.to }));

@@ -73,7 +73,9 @@
     amcas: {
       maxEntries: 15,
       mostMeaningful: 3,
-      nameChars: 60,
+      nameChars: 60,            // reported by advisors as the AMCAS interface limit; confirm in the live form
+      personalStatementChars: 5300,
+      otherImpactfulChars: 1325,
       descriptionChars: 700,
       meaningfulChars: 1325,
       dateRangesPerEntry: 4,
@@ -144,7 +146,7 @@
       { key: 'genchem', label: 'General chemistry with lab (1 year)', hint: 'CHEM 2070 + 2071, CHEM 2080 + 2081 (or CHEM 2150)', match: ['CHEM 2070', 'CHEM 2071', 'CHEM 2080', 'CHEM 2081', 'CHEM 2090', 'CHEM 2150'] },
       { key: 'orgo',    label: 'Organic chemistry with lab (1 year)', hint: 'CHEM 3570 + 3580 (or 3590 + 3600) + CHEM 2510 lab. CHEM 1570 is not accepted for pre-med.', match: ['CHEM 3570', 'CHEM 3580', 'CHEM 3590', 'CHEM 3600', 'CHEM 2510', 'CHEM 3530'] },
       { key: 'biochem', label: 'Biochemistry',                        hint: 'BIOMG 3300, 3310 (+3320), or 3350', match: ['BIOMG 3300', 'BIOMG 3310', 'BIOMG 3320', 'BIOMG 3350'] },
-      { key: 'physics', label: 'Physics with lab (1 year)',           hint: 'PHYS 1101 + 1102, or PHYS 2207 + 2208 (preferred for the major)', match: ['PHYS 1101', 'PHYS 1102', 'PHYS 2207', 'PHYS 2208', 'PHYS 1112', 'PHYS 1110', 'PHYS 2213'] },
+      { key: 'physics', label: 'Physics with lab (1 year)',           hint: 'PHYS 1101 + 1102 (pre-med only) or PHYS 2207 + 2208 (also satisfies the Bio Sci major)', match: ['PHYS 1101', 'PHYS 1102', 'PHYS 2207', 'PHYS 2208', 'PHYS 1112', 'PHYS 1110', 'PHYS 2213'] },
       { key: 'math',    label: 'Calculus',                            hint: 'MATH 1106 or MATH 1110 (or 1910)', match: ['MATH 1106', 'MATH 1110', 'MATH 1120', 'MATH 1910', 'MATH 1920'] },
       { key: 'stats',   label: 'Statistics',                          hint: 'STSCI 2150 or BTRY 3010 preferred; also STSCI 2200, MATH 1710, AEM 2100, PSYCH 2500, SOC 3010', match: ['STSCI 2150', 'STSCI 2200', 'STSCI 2100', 'BTRY 3010', 'MATH 1710', 'AEM 2100', 'PSYCH 2500', 'SOC 3010', 'ECON 3130', 'PAM 2100'] },
       { key: 'writing', label: 'English / writing (2 semesters)',     hint: 'Two First-Year Writing Seminars (any department). Pin them to this slot in the course form.', match: ['WRIT', 'ENGL 1'], titleMatch: ['writing seminar', 'fws'] },
@@ -157,17 +159,18 @@
     milestones: [
       { key: 'explore-ct',   date: '2026-12-01', label: 'Finish the required Explore CT events',   detail: 'First-year Cornell Tradition fellows must attend all Explore CT orientation events this fall.' },
       { key: 'fresh-fall',   date: '2026-12-18', label: 'First semester ends',                     detail: 'Log every hour from day one. Go to office hours: letter writers start as professors who know your name.' },
-      { key: 'bsp-1250',     date: '2027-01-19', label: 'BSP: enroll in BIOG 1250 (spring seminar)', detail: 'Biology Scholars Program first-year seminar, 1 credit S/U. Weekly 2-hour study group continues through sophomore year.' },
+      { key: 'bsp-1250',     date: '2027-01-19', label: 'BSP: enroll in the first-year seminar (BIOG 1200 or 1250; confirm with BSP)', detail: 'Biology Scholars Program first-year seminar, 1 credit S/U. Weekly 2-hour study group continues through sophomore year.' },
       { key: 'trad-reapp-1', date: '2027-03-25', label: 'Cornell Tradition re-application opens',  detail: 'Opens late March, due near the end of the academic year (one college page says June 30; confirm with tradition@cornell.edu). Off-campus work and service need supervisor endorsements.' },
       { key: 'summer-1',     date: '2027-05-30', label: 'Summer after first year',                 detail: 'Clinical hours, research, or a job. Summer hours do not count toward Tradition, so front-load Tradition hours during the year.' },
       { key: 'bsp-2200',     date: '2027-08-23', label: 'BSP: enroll in BIOG 2200 (sophomore fall seminar)', detail: '1 credit S/U, BSP members only.' },
       { key: 'soph-plan',    date: '2027-09-01', label: 'Sophomore year: settle into one research lab', detail: 'Two years in one lab reads better than four short stints.' },
-      { key: 'bsp-sgl',      date: '2028-03-01', label: 'BSP: apply for Study Group Leader',       detail: 'Applications are in the spring of sophomore year; it is a year-long paid or credit role (BIOG 2401).' },
+      { key: 'bsp-sgl',      date: '2028-03-01', label: 'BSP: apply for Study Group Leader',       detail: 'Applications are in the spring of sophomore year; a year-long role taken for credit (BIOG 2401). Whether it is paid is unverified, which matters for Tradition work hours.' },
       { key: 'trad-reapp-2', date: '2028-03-25', label: 'Cornell Tradition re-application opens',  detail: 'Same as last year: list every job and service role, request endorsements early.' },
       { key: 'mcat-review',  date: '2028-06-01', label: 'Summer before junior year: MCAT content review', shift: true, detail: 'Finish general chemistry, organic chemistry, biochemistry, physics, psychology and sociology by fall 2028.' },
       { key: 'hpac-module',  date: '2028-10-01', label: 'Start the HPAC Application Module; ask letter writers', shift: true, detail: 'Cornell Health Professions Advising Center (HPAC) opens its Application Module in October of the year before you apply. Begin approaching the 2–5 people who will write for your Cornell Letter Packet.' },
       { key: 'mcat-reg',     date: '2028-10-20', label: '2029 MCAT registration opens',            shift: true, detail: 'Registration opens in late October; pick a March or April date before seats go.' },
-      { key: 'privatefolio', date: '2029-01-15', label: 'Open a PrivateFolio account for the Cornell Letter Packet', shift: true, detail: 'January or February. HPAC assembles a cover letter plus 2–5 letters you choose and uploads the packet in the summer.' },
+      { key: 'privatefolio', date: '2029-01-15', label: 'Open a PrivateFolio account for the Cornell Letter Packet', shift: true, detail: 'January or February. HPAC assembles a cover letter plus 2–5 letters you choose and uploads the packet in the summer. Finish the Application Module assignments to book the spring coaching appointment.' },
+      { key: 'fap',          date: '2029-01-10', label: 'Check AAMC Fee Assistance Program eligibility', shift: true, detail: 'Income-based; opens each January. Approval must come before MCAT registration to get the reduced fee, and it also reduces AMCAS fees. Confirm current rules at aamc.org.' },
       { key: 'mcat-prep',    date: '2029-01-08', label: 'Dedicated MCAT study block',               shift: true, detail: 'Plan about 300 hours over 3–4 months while carrying a lighter course load.' },
       { key: 'trad-reapp-3', date: '2029-03-25', label: 'Cornell Tradition re-application opens',  detail: 'Junior-year re-application.' },
       { key: 'mcat',         date: '2029-04-15', label: 'Take the MCAT (March–April)',              shift: true, detail: 'Scores take about 30 days. The last workable date is late May for a June submission.' },
@@ -191,7 +194,9 @@
     },
     primaryCareWords: ['family', 'internal medicine', 'pediatric', 'primary care', 'general practice', 'geriatric'],
 
-    journalTags: ['Patient story', 'Lesson learned', 'Challenge', 'Why medicine', 'Leadership', 'Teamwork', 'Research insight', 'Service orientation', 'Empathy', 'Resilience', 'Ethics', 'Idea for essay'],
+    // Experience tags plus the AAMC premed competencies (2026 names) that essays and letters are read against.
+    journalTags: ['Patient story', 'Lesson learned', 'Challenge', 'Why medicine', 'Idea for essay', 'Service Orientation', 'Empathy and Compassion', 'Understanding Others', 'Self-Awareness', 'Teamwork and Collaboration', 'Resilience and Adaptability', 'Ethical Responsibility', 'Interpersonal Skills', 'Oral Communication', 'Reliability and Dependability', 'Commitment to Learning and Growth', 'Critical Thinking', 'Scientific Inquiry'],
+    certSuggestions: ['BLS/CPR (American Heart Association)', 'EMT-B', 'CNA', 'Phlebotomy', 'CITI human-subjects research training', 'HIPAA training', 'Immunization record / TB test'],
 
     letterTypes: ['Science faculty', 'Non-science faculty', 'Research mentor', 'Clinical supervisor', 'Volunteer supervisor', 'Employer', 'Other'],
     letterStatuses: ['Potential', 'Building relationship', 'Asked', 'Confirmed', 'Submitted'],

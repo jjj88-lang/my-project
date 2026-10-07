@@ -53,14 +53,29 @@
     return true;
   }
 
+  // Hours of one log that fall inside [from, to] (inclusive ISO dates; '' = open).
+  // A single-day entry counts wholly or not at all; an entry with an end date is spread
+  // evenly over its days, so a block that crosses a boundary is split proportionally.
+  function logOverlapHours(l, from, to) {
+    const h = Number(l.hours) || 0, d = l.date || '';
+    if (!h) return 0;
+    if (!l.endDate || l.endDate <= d) return logInWindow(l, from, to) ? h : 0;
+    const s = parseISO(d), e = parseISO(l.endDate);
+    if (!s || !e) return logInWindow(l, from, to) ? h : 0;
+    const total = daysBetween(s, e) + 1;
+    const f = from ? parseISO(from) : null, t = to ? parseISO(to) : null;
+    const ws = f && f > s ? f : s, we = t && t < e ? t : e;
+    if (we < ws) return 0;
+    return h * (daysBetween(ws, we) + 1) / total;
+  }
+
   // Sum hours of logs, optionally filtered by activity ids and a date window.
   function sumHours(logs, opts) {
     opts = opts || {};
     let total = 0;
     for (const l of logs) {
       if (opts.activityIds && !opts.activityIds.has(l.activityId)) continue;
-      if (!logInWindow(l, opts.from, opts.to)) continue;
-      total += Number(l.hours) || 0;
+      total += logOverlapHours(l, opts.from, opts.to);
     }
     return total;
   }
@@ -69,9 +84,8 @@
     let all = 0, counted = 0;
     for (const l of logs) {
       if (l.activityId !== activity.id) continue;
-      const h = Number(l.hours) || 0;
-      all += h;
-      if (!countFrom || (l.date || '') >= countFrom) counted += h;
+      all += Number(l.hours) || 0;
+      counted += countFrom ? logOverlapHours(l, countFrom, '') : (Number(l.hours) || 0);
     }
     return { all: all, counted: counted };
   }
@@ -88,7 +102,7 @@
       if (!a || !out[a.category]) continue;
       const h = Number(l.hours) || 0;
       out[a.category].all += h;
-      if (!countFrom || (l.date || '') >= countFrom) out[a.category].counted += h;
+      out[a.category].counted += countFrom ? logOverlapHours(l, countFrom, '') : h;
     }
     return out;
   }
@@ -105,15 +119,26 @@
     }
     const idx = {};
     keys.forEach((k, i) => { idx[k] = i; });
-    const rows = keys.map(k => ({ key: k, label: fmtMonth(k), total: 0, byCat: {} }));
+    const rows = keys.map(k => {
+      const d = parseISO(k + '-01');
+      const last = new Date(d.getFullYear(), d.getMonth() + 1, 0);
+      return { key: k, label: fmtMonth(k), from: k + '-01', to: toISO(last), total: 0, byCat: {} };
+    });
     for (const l of logs) {
-      const i = idx[monthKey(l.date)];
-      if (i === undefined) continue;
       const a = byAct[l.activityId];
       const cat = a ? a.category : 'other';
-      const h = Number(l.hours) || 0;
-      rows[i].total += h;
-      rows[i].byCat[cat] = (rows[i].byCat[cat] || 0) + h;
+      if (!l.endDate || l.endDate <= (l.date || '')) {
+        const i = idx[monthKey(l.date)];
+        if (i === undefined) continue;
+        const h = Number(l.hours) || 0;
+        rows[i].total += h; rows[i].byCat[cat] = (rows[i].byCat[cat] || 0) + h;
+        continue;
+      }
+      if (l.endDate < rows[0].from || (l.date || '') > rows[rows.length - 1].to) continue;
+      for (const r of rows) {
+        const h = logOverlapHours(l, r.from, r.to);
+        if (h) { r.total += h; r.byCat[cat] = (r.byCat[cat] || 0) + h; }
+      }
     }
     return rows;
   }
@@ -149,18 +174,25 @@
     const cfg = Object.assign({}, CFG.tradition, trad || {});
     const src = (cfg.windows && cfg.windows.length) ? cfg.windows : CFG.tradition.windows;
     const windows = src.map(w => ({ label: w.label, from: w.from, to: w.to, work: 0, community: 0, campus: 0, entries: 0 }));
+    // Hours tagged for Tradition that fall after the first window opens but inside no window
+    // (summer) are reported as `outside`; hours before Cornell are ignored.
     let outside = 0;
+    const firstFrom = windows.length ? windows[0].from : '';
     for (const l of logs) {
       const a = byAct[l.activityId];
       if (!a || !a.tradition) continue;
-      const h = Number(l.hours) || 0, d = l.date || '';
-      const w = windows.find(x => d >= x.from && d <= x.to);
-      if (!w) { outside += h; continue; }
-      if (a.tradition === 'work') w.work += h;
-      else if (a.tradition === 'community') w.community += h;
-      else if (a.tradition === 'campus') w.campus += h;
-      else if (a.tradition === 'service') w.community += h; // legacy value
-      w.entries += 1;
+      let inWindows = 0;
+      for (const w of windows) {
+        const h = logOverlapHours(l, w.from, w.to);
+        if (!h) continue;
+        inWindows += h;
+        if (a.tradition === 'work') w.work += h;
+        else if (a.tradition === 'community') w.community += h;
+        else if (a.tradition === 'campus') w.campus += h;
+        else if (a.tradition === 'service') w.community += h; // legacy value
+        w.entries += 1;
+      }
+      outside += Math.max(0, logOverlapHours(l, firstFrom, '') - inWindows);
     }
     const today = todayStr || todayISO();
     for (const w of windows) {
@@ -323,7 +355,7 @@
   window.PMT_CALC = {
     todayISO, parseISO, toISO, monthKey, addMonths, daysBetween, fmtDate, fmtMonth, fmtRange,
     round1, fmtHours, fmtNum,
-    sumHours, activityHours, categoryTotals, monthlySeries, trailingWeeklyAverage, estimatedHours,
+    logOverlapHours, sumHours, activityHours, categoryTotals, monthlySeries, trailingWeeklyAverage, estimatedHours,
     traditionYears,
     termOrder, subjectOf, isBCPMCode, gradePoints, gpaOf, academicSummary, fmtGPA, prereqStatus, amcasStatus, latinHonors,
     milestoneView, nextMilestones, amcasEntries,

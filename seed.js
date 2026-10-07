@@ -13,7 +13,7 @@
       contactName: '', contactTitle: 'Volunteer Services', contactEmail: '', contactPhone: '',
       description: 'Acted as a clinical liaison for 3,000+ patients in the perioperative and discharge areas, gaining firsthand insight into how rural geographical barriers and transportation logistics impact post-surgical recovery.',
       bullets: 'Acted as a clinical liaison for 3,000+ patients in the perioperative and discharge areas, gaining firsthand insight into how rural geographical barriers and transportation logistics impact post-surgical recovery.',
-      mostMeaningful: true, meaningfulEssay: '', tradition: '', startedInHS: true, includeAmcas: true, notes: 'Add the volunteer coordinator\'s name and email before you lose touch. Consider continuing during summers home.' }),
+      mostMeaningful: false, meaningfulEssay: '', tradition: '', startedInHS: true, includeAmcas: true, notes: 'Ended the summer after graduation. Get an hours letter from Volunteer Services and the coordinator\'s name and email before you lose touch. Continuing during summers home (community service for Tradition only during breaks in the academic year) keeps it a college-era activity.' }),
     stamp({ id: 'act-shadowing', name: 'Surgery & Anesthesiology Shadowing', org: 'Stormont Vail Health', role: 'Clinical Shadowing', category: 'shadowing', amcasType: 'Physician Shadowing/Clinical Observation', status: 'Completed', location: 'Topeka, KS', start: '2024-08-15', end: '2026-08-15', ongoing: false, hoursPerWeek: 2, weeksPerYear: 32,
       contactName: '', contactTitle: '', contactEmail: '', contactPhone: '',
       description: 'Observed surgeons and anesthesiologists across orthopedic, general surgical, and other perioperative cases, developing an interest in surgical care and physician decision-making.',
@@ -23,7 +23,7 @@
       contactName: '', contactTitle: '', contactEmail: '', contactPhone: '',
       description: 'Co-founded and led a 31-member mentoring organization serving 500+ students with ADHD, learning disabilities, and executive-function challenges; expanded programming to a local middle school. Overhauled operations by establishing an accountable mentor pipeline with the National Honor Society.',
       bullets: 'Co-founded and led a 31-member mentoring organization serving 500+ students with ADHD, learning disabilities, and executive-function challenges; expanded programming to a local middle school.\nOverhauled operational structure by establishing a highly accountable mentor pipeline with the National Honor Society, shifting the program from well-intentioned volunteerism to a reliable support system.',
-      mostMeaningful: true, meaningfulEssay: '', tradition: '', startedInHS: true, includeAmcas: true, notes: 'If the organization keeps running without you, note who leads it now; sustainability is a strong interview point.' }),
+      mostMeaningful: false, meaningfulEssay: '', tradition: '', startedInHS: true, includeAmcas: true, notes: 'Ended at high-school graduation, so AAMC guidance says it usually should not be listed on AMCAS unless it continues in some form (advising the successors, expanding it to Ithaca). If it keeps running without you, note who leads it now.' }),
     stamp({ id: 'act-patch', name: 'PATCH (Pre-Professional Association Toward Careers in Health)', org: 'Cornell University', role: 'Member', category: 'club', amcasType: 'Extracurricular Activities', status: 'Active', location: 'Ithaca, NY', start: '2026-08-24', end: '', ongoing: true, hoursPerWeek: 1, weeksPerYear: 30,
       contactName: '', contactTitle: '', contactEmail: '', contactPhone: '', description: '', bullets: '', mostMeaningful: false, meaningfulEssay: '', tradition: '', startedInHS: false, includeAmcas: true, notes: 'Aim for a board position by sophomore year; a title turns a club into a leadership entry.' }),
     stamp({ id: 'act-kdsap', name: 'KDSAP (Kidney Disease Screening & Awareness Program)', org: 'Cornell University', role: 'Member', category: 'club', amcasType: 'Extracurricular Activities', status: 'Active', location: 'Ithaca, NY', start: '2026-08-24', end: '', ongoing: true, hoursPerWeek: 1, weeksPerYear: 30,
@@ -39,7 +39,7 @@
       contactName: '', contactTitle: 'Principal investigator', contactEmail: '', contactPhone: '',
       description: 'Co-led experiments evaluating the reliability of retrieval-augmented AI for clinical question answering; identified reproducible answer-position bias and citation failures.',
       bullets: 'Co-led experiments evaluating the reliability of retrieval-augmented AI for clinical question answering; identified reproducible answer-position bias and citation failures.',
-      mostMeaningful: false, meaningfulEssay: '', tradition: '', startedInHS: true, includeAmcas: true, notes: 'Set your typical hours per week and start logging sessions; research hours are the easiest to lose track of.' }),
+      mostMeaningful: false, meaningfulEssay: '', tradition: '', startedInHS: false, includeAmcas: true, notes: 'Began three weeks before graduation and continues at Cornell, so it counts as a college-era project. Set your typical hours per week and start logging sessions; research hours are the easiest to lose track of.' }),
     stamp({ id: 'act-yuki', name: 'Yuki Restaurant of Japan', org: 'Yuki Restaurant of Japan', role: 'Server, Busser, Hibachi Chef, Sushi Chef', category: 'work', amcasType: 'Paid Employment – Not Medical/Clinical', status: 'Active', location: 'Topeka, KS', start: '2021-02-01', end: '', ongoing: true, hoursPerWeek: 12, weeksPerYear: 48,
       contactName: '', contactTitle: 'Owner / manager', contactEmail: '', contactPhone: '',
       description: 'Prepared and served 500+ hibachi meals in front of customers, balancing precise food preparation, live interaction, and rapid adaptation in a high-pressure environment. Trained 40+ new hires across front- and back-of-house roles within a multilingual team.',
@@ -73,14 +73,14 @@
 
   const courses = [
     stamp({ id: 'crs-biomg1350', term: 'Fall 2026', code: 'BIOMG 1350', title: 'Cell and Developmental Biology', credits: 3, grade: 'IP', bcpm: true, prereq: '', notes: '' }),
-    stamp({ id: 'crs-chem2070', term: 'Fall 2026', code: 'CHEM 2070', title: 'General Chemistry I', credits: 4, grade: 'IP', bcpm: true, prereq: '', notes: '' }),
+    stamp({ id: 'crs-chem2070', term: 'Fall 2026', code: 'CHEM 2070', title: 'General Chemistry I', credits: 3, grade: 'IP', bcpm: true, prereq: '', notes: '3-credit lecture; CHEM 2071 is the 1-credit corequisite lab.' }),
     stamp({ id: 'crs-chem2071', term: 'Fall 2026', code: 'CHEM 2071', title: 'General Chemistry I Laboratory', credits: 1, grade: 'IP', bcpm: true, prereq: '', notes: 'Corequisite lab for CHEM 2070. Taking CHEM 2070/2071 forfeits AP Chemistry credit.' }),
   ];
   const apCourses = ['AP Biology', 'AP Chemistry', 'AP Physics 1', 'AP Calculus BC', 'AP Statistics', 'AP Computer Science Principles', 'AP Environmental Science', 'AP Literature and Composition', 'AP European History', 'AP US History', 'AP Art History', 'AP Microeconomics', 'AP Comparative Government'];
   apCourses.forEach((t, i) => courses.push(stamp({ id: 'crs-ap-' + (i + 1), term: 'AP / transfer credit', code: t.toUpperCase().replace('AP ', 'AP '), title: t + ' (Washburn Rural HS)', credits: 0, grade: 'AP', bcpm: /Biology|Chemistry|Physics|Calculus|Statistics/.test(t), prereq: 'none', notes: (/Biology/.test(t) ? 'Bio Sci majors cannot use AP Biology credit toward major requirements; it can count toward the 120 graduation credits. ' : /Chemistry/.test(t) ? 'AP Chemistry credit is forfeited if you take CHEM 2070/2071 (kept only with CHEM 2150). ' : /Statistics/.test(t) ? 'A score of 5 may apply toward the major statistics requirement (confirm with the Bio Sci office). ' : '') + 'Enter the Cornell credits awarded once AP scores post; AMCAS lists AP credit but excludes it from the GPA.' })));
 
   const awards = [
-    stamp({ id: 'awd-ge-reagan', name: 'GE-Reagan Foundation Scholarship', org: 'Ronald Reagan Presidential Foundation & Institute', level: 'National', date: '2026-04-01', amount: 40000, selectivity: '1 of 10 students nationally from 13,000 applicants', description: 'Selected for leadership, drive, integrity, and citizenship; $40,000 in renewable scholarship funding.' }),
+    stamp({ id: 'awd-ge-reagan', name: 'GE-Reagan Foundation Scholarship', org: 'Ronald Reagan Presidential Foundation & Institute', level: 'National', date: '2026-04-01', amount: 40000, selectivity: '1 of 10 students nationally from 13,000 applicants', description: 'Selected for leadership, drive, integrity, and citizenship; $40,000 in renewable scholarship funding.', renewalDue: '', renewalConditions: 'Renewable over four years. Confirm the renewal conditions (full-time enrollment, GPA) and the annual renewal form deadline with the Reagan Foundation, then set the date here.' }),
     stamp({ id: 'awd-ad-astra', name: 'United Kaw Valley Ad Astra Youth Volunteer Award', org: 'United Way of Kaw Valley', level: 'Local', date: '', amount: 0, selectivity: '', description: 'Recognized for exceptional sustained community service and measurable program outcomes in Shawnee County. Add the award date.' }),
     stamp({ id: 'awd-tradition', name: 'Cornell Tradition Fellowship', org: 'Cornell University', level: 'University', date: '2026-08-24', amount: 0, selectivity: '', description: 'Fellowship recognizing work, service and academics; carries annual work and service hour commitments tracked on the dashboard.' }),
     stamp({ id: 'awd-bio-scholars', name: 'Biology Scholars Program', org: 'Cornell University, CALS', level: 'University', date: '2026-08-24', amount: 0, selectivity: '', description: 'Selected for the Biology Scholars Program.' }),
@@ -160,10 +160,10 @@
       school: 'Cornell University, College of Agriculture and Life Sciences', major: 'B.S. Biological Sciences', classYear: 2030, collegeStart: '2026-08-24',
       programs: ['Cornell Tradition Fellow', 'Biology Scholars Program'],
       hsSummary: 'Washburn Rural High School, Topeka, KS (2022–2026): rank 2 of 441, unweighted GPA 4.0, ACT 35.',
-      languages: 'English; conversational Korean', certifications: '', interests: 'Hibachi & sushi cooking, soccer goalkeeping, trivia, Tottenham Hotspur',
+      languages: 'English; conversational Korean; Spanish (four years in high school, through Honors Spanish 4)', certifications: '', interests: 'Hibachi & sushi cooking, soccer goalkeeping, trivia, Tottenham Hotspur',
       mcatDate: '', mcatScore: '', gapYear: false,
     },
   };
 
-  window.PMT_SEED = { activities, logs, courses, awards, pubs, letters, journal: [], resume, settings };
+  window.PMT_SEED = { activities, logs, courses, awards, pubs, letters, journal: [], resume, essays: [], certs: [], settings };
 })();

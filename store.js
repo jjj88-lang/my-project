@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   const CFG = window.PMT_CONFIG;
-  const COLLECTIONS = ['activities', 'logs', 'courses', 'awards', 'pubs', 'letters', 'journal', 'resume'];
+  const COLLECTIONS = ['activities', 'logs', 'courses', 'awards', 'pubs', 'letters', 'journal', 'resume', 'essays', 'certs'];
   const LS_KEY = 'pmt:v' + CFG.dataVersion;
   const SETTINGS_PATH = { col: 'meta', id: 'settings' };
 

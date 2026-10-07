@@ -1,6 +1,6 @@
 # Pre-Med Ledger
 
-A personal tracker for a pre-med college career: hours (clinical, shadowing, volunteering, research, leadership, teaching, work, clubs), activities with the contact details AMCAS will ask for, courses and GPA on both the Cornell and AMCAS scales, honors, publications, a resume with version history, a reflection journal, a letter-writer roster, a Class of 2030 application timeline, and a Cornell Tradition fellowship tracker.
+A personal tracker for a pre-med college career: hours (clinical, shadowing, volunteering, research, leadership, teaching, work, clubs), activities with the contact details AMCAS will ask for, courses and GPA on both the Cornell and AMCAS scales, honors and certifications with expiry dates, publications, a resume with version history plus personal-statement drafts, a reflection journal, a letter-writer roster, a Class of 2030 application timeline, and a Cornell Tradition fellowship tracker.
 
 It is a static site: plain HTML, CSS and JavaScript, no build step and no server.
 
