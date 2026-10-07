@@ -32,3 +32,11 @@ It is a static site: plain HTML, CSS and JavaScript, no build step and no server
 - **Timeline:** straight-through plan for a May 2030 graduate (HPAC Application Module October 2028, MCAT spring 2029, AMCAS June 2029, matriculate fall 2030); the gap-year option in Settings shifts the application milestones one year later.
 
 Change any of these in Settings; the numbers in `config.js` are only the starting values.
+
+## Checks
+
+- `node tools/screenshots.js` renders every page at desktop and phone widths in light and dark, reports console errors and horizontal overflow, and saves screenshots to `tools/shots/`.
+- `node tools/db-flow-test.js` drives the app in headless Chromium against a fake artifact database (log, edit, delete, settings, export, live updates from another writer).
+- `node tools/make-seed-docs.js . out/` turns `seed.js` into one JSON document per record for seeding the artifact database.
+
+Both browser checks need Playwright and Chromium: set `PLAYWRIGHT_MODULE` to the Playwright package path and `CHROME_PATH` to the Chromium binary.
