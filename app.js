@@ -202,7 +202,7 @@
         if (f.groups) for (const g of f.groups) { const og = h('optgroup', { label: g.label }); addOpts(og, g.options); input.appendChild(og); }
         else addOpts(input, f.options || []);
         input.value = val;
-        if (input.value !== String(val) && val !== '') { input.appendChild(h('option', { value: val }, val)); input.value = val; }
+        if (input.value !== String(val) && val !== '') { input.appendChild(h('option', { value: val }, f.missingLabel ? f.missingLabel(val) : val)); input.value = val; }
       } else if (f.type === 'textarea') {
         input = h('textarea', { class: 'textarea' + (f.tall ? ' tall' : ''), id: pfx + f.key, placeholder: f.placeholder, rows: f.rows });
         input.value = val;
@@ -312,11 +312,11 @@
         const counts = S.COLLECTIONS.map(c => (obj[c] || []).length + ' ' + c).join(', ');
         openModal({
           title: 'Import backup',
-          body: h('div', { class: 'stack' }, h('p', { class: 'ink2' }, 'Found: ' + counts + '.'), h('p', { class: 'small muted' }, 'Merge keeps what you have and adds or overwrites entries with the same id. Replace deletes everything first.')),
+          body: h('div', { class: 'stack' }, h('p', { class: 'ink2' }, 'Found: ' + counts + '.'), h('p', { class: 'small muted' }, 'Merge keeps your current settings and entries, adds the backup\'s entries (overwriting ones with the same id), and adds its milestone marks. Replace deletes everything first and restores the backup exactly.')),
           actions: [
             { label: 'Cancel' },
-            { label: 'Replace everything', kind: 'danger', onClick: async () => { const n = await S.importObject(obj, 'replace'); toast('Imported ' + n + ' entries'); } },
-            { label: 'Merge', kind: 'primary', onClick: async () => { const n = await S.importObject(obj, 'merge'); toast('Imported ' + n + ' entries'); } },
+            { label: 'Replace everything', kind: 'danger', onClick: async () => { try { const n = await S.importObject(obj, 'replace'); toast('Imported ' + n + ' entries'); } catch (e) { toast(e.message || 'Import failed', 'bad'); return false; } } },
+            { label: 'Merge', kind: 'primary', onClick: async () => { try { const n = await S.importObject(obj, 'merge'); toast('Imported ' + n + ' entries'); } catch (e) { toast(e.message || 'Import failed', 'bad'); return false; } } },
           ],
         });
       };

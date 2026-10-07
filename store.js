@@ -227,6 +227,8 @@
       if (!obj || typeof obj !== 'object') throw new Error('Not a Pre-Med Ledger backup file.');
       const hasAny = COLLECTIONS.some(c => Array.isArray(obj[c]));
       if (!hasAny && !obj.settings) throw new Error('Not a Pre-Med Ledger backup file.');
+      for (const c of COLLECTIONS) if (obj[c] !== undefined && !Array.isArray(obj[c])) throw new Error('Not a Pre-Med Ledger backup file (' + c + ' is not a list).');
+      if (obj.settings !== undefined && (!obj.settings || typeof obj.settings !== 'object' || Array.isArray(obj.settings))) throw new Error('Not a Pre-Med Ledger backup file (settings malformed).');
       if (mode === 'replace') {
         for (const col of COLLECTIONS) for (const id of Array.from(this.data[col].keys())) await this.remove(col, id);
         this.settings = mergeSettings(defaultSettings(), obj.settings || {});
@@ -241,7 +243,14 @@
           n += 1;
         }
       }
-      if (obj.settings && mode !== 'replace') await this.saveSettings(obj.settings);
+      if (obj.settings && mode !== 'replace') {
+        // Merge keeps the current settings and only adds milestone marks and custom milestones from the backup.
+        const cur = this.settings;
+        const done = Object.assign({}, obj.settings.milestonesDone || {}, cur.milestonesDone || {});
+        const curCustom = cur.customMilestones || [];
+        const custom = curCustom.concat((obj.settings.customMilestones || []).filter(m => m && !curCustom.some(x => x.key === m.key)));
+        await this.saveSettings({ milestonesDone: done, customMilestones: custom });
+      }
       return n;
     },
     async loadSeed() {

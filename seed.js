@@ -52,23 +52,23 @@
     stamp({ id: 'log-stormont-1', activityId: 'act-stormont', date: '2022-10-01', endDate: '2023-05-31', hours: 95, note: EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
     stamp({ id: 'log-stormont-2', activityId: 'act-stormont', date: '2023-06-01', endDate: '2024-05-31', hours: 141, note: EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
     stamp({ id: 'log-stormont-3', activityId: 'act-stormont', date: '2024-06-01', endDate: '2025-05-31', hours: 141, note: EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
-    stamp({ id: 'log-stormont-4', activityId: 'act-stormont', date: '2025-06-01', endDate: '2026-05-23', hours: 138, note: EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
-    stamp({ id: 'log-stormont-5', activityId: 'act-stormont', date: '2026-05-24', endDate: '2026-08-15', hours: 36, note: 'Summer after graduation. ' + EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
-    // Shadowing: 2 hrs/wk × 32 wks/yr
-    stamp({ id: 'log-shadow-1', activityId: 'act-shadowing', date: '2024-08-15', endDate: '2025-05-31', hours: 64, note: EST + ' Fill in physician names and specialties.', physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
-    stamp({ id: 'log-shadow-2', activityId: 'act-shadowing', date: '2025-06-01', endDate: '2026-05-23', hours: 64, note: EST + ' Fill in physician names and specialties.', physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
-    stamp({ id: 'log-shadow-3', activityId: 'act-shadowing', date: '2026-05-24', endDate: '2026-08-15', hours: 16, note: 'Summer after graduation. ' + EST, physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
+    stamp({ id: 'log-stormont-4', activityId: 'act-stormont', date: '2025-06-01', endDate: '2026-05-22', hours: 138, note: EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
+    stamp({ id: 'log-stormont-5', activityId: 'act-stormont', date: '2026-05-23', endDate: '2026-08-15', hours: 36, note: 'Summer after graduation. ' + EST, physician: '', specialty: '', setting: 'Perioperative and discharge areas', verifiedBy: '' }),
+    // Shadowing: 2 hrs/wk × 32 wks/yr (128 h over two years, 16 of them the summer after graduation)
+    stamp({ id: 'log-shadow-1', activityId: 'act-shadowing', date: '2024-08-15', endDate: '2025-05-31', hours: 56, note: EST + ' Fill in physician names and specialties.', physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
+    stamp({ id: 'log-shadow-2', activityId: 'act-shadowing', date: '2025-06-01', endDate: '2026-05-22', hours: 56, note: EST + ' Fill in physician names and specialties.', physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
+    stamp({ id: 'log-shadow-3', activityId: 'act-shadowing', date: '2026-05-23', endDate: '2026-08-15', hours: 16, note: 'Summer after graduation. ' + EST, physician: '', specialty: 'Surgery / Anesthesiology', setting: 'Operating room', verifiedBy: '' }),
     // Future Frame: 2 hrs/wk × 30 wks/yr
     stamp({ id: 'log-ff-1', activityId: 'act-futureframe', date: '2024-09-01', endDate: '2025-05-31', hours: 60, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
-    stamp({ id: 'log-ff-2', activityId: 'act-futureframe', date: '2025-08-15', endDate: '2026-05-23', hours: 60, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
+    stamp({ id: 'log-ff-2', activityId: 'act-futureframe', date: '2025-08-15', endDate: '2026-05-22', hours: 60, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
     // Yuki: 12 hrs/wk × 48 wks/yr, seasonal
     stamp({ id: 'log-yuki-2021', activityId: 'act-yuki', date: '2021-02-01', endDate: '2021-12-31', hours: 528, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
     stamp({ id: 'log-yuki-2022', activityId: 'act-yuki', date: '2022-01-01', endDate: '2022-12-31', hours: 576, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
     stamp({ id: 'log-yuki-2023', activityId: 'act-yuki', date: '2023-01-01', endDate: '2023-12-31', hours: 576, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
     stamp({ id: 'log-yuki-2024', activityId: 'act-yuki', date: '2024-01-01', endDate: '2024-12-31', hours: 576, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
     stamp({ id: 'log-yuki-2025', activityId: 'act-yuki', date: '2025-01-01', endDate: '2025-12-31', hours: 576, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
-    stamp({ id: 'log-yuki-2026a', activityId: 'act-yuki', date: '2026-01-01', endDate: '2026-05-23', hours: 222, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
-    stamp({ id: 'log-yuki-2026b', activityId: 'act-yuki', date: '2026-05-24', endDate: '2026-08-15', hours: 132, note: 'Summer after graduation. ' + EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
+    stamp({ id: 'log-yuki-2026a', activityId: 'act-yuki', date: '2026-01-01', endDate: '2026-05-22', hours: 222, note: EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
+    stamp({ id: 'log-yuki-2026b', activityId: 'act-yuki', date: '2026-05-23', endDate: '2026-08-15', hours: 132, note: 'Summer after graduation. ' + EST, physician: '', specialty: '', setting: '', verifiedBy: '' }),
   ];
 
   const courses = [

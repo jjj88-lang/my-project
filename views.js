@@ -34,7 +34,7 @@
   function logSpec(existing, defaults) {
     existing = existing || {}; defaults = defaults || {};
     return [
-      { key: 'activityId', label: 'Activity', type: 'select', groups: activityGroups(true), placeholder: 'Choose an activity…', required: true, default: defaults.activityId, full: true },
+      { key: 'activityId', label: 'Activity', type: 'select', groups: activityGroups(true), placeholder: 'Choose an activity…', required: true, default: defaults.activityId, full: true, missingLabel: () => 'Deleted activity' },
       { key: 'date', label: 'Date', type: 'date', required: true, default: C.todayISO() },
       { key: 'hours', label: 'Hours', type: 'number', step: 0.25, min: 0, required: true, placeholder: '2.5', validate: v => v === 0 ? 'Enter more than 0' : '' },
       { key: 'endDate', label: 'End date (optional, for a whole week or month)', type: 'date', help: 'Leave blank for a single day. For a block of hours logged at once, the hours are spread evenly across the days, so a block that crosses a semester or summer boundary is split correctly.' },
@@ -623,7 +623,7 @@
       { key: 'venue', label: 'Journal / conference', type: 'text', placeholder: 'Journal of Student Research 13(4)' },
       { key: 'date', label: 'Date', type: 'date' },
       { key: 'advisor', label: 'Advisor / PI', type: 'text' },
-      { key: 'activityId', label: 'Related research activity', type: 'select', groups: activityGroups(true), placeholder: 'None' },
+      { key: 'activityId', label: 'Related research activity', type: 'select', groups: activityGroups(true), placeholder: 'None', missingLabel: () => 'Deleted activity' },
       { key: 'citation', label: 'Full citation', type: 'textarea', full: true, rows: 2, placeholder: 'Jeon, J. (2024). Title. Journal, 13(4). https://doi.org/…' },
       { key: 'url', label: 'Link (DOI or URL)', type: 'text', full: true },
       { key: 'notes', label: 'Notes', type: 'textarea', full: true, rows: 2 },
@@ -726,10 +726,13 @@
     section('LEADERSHIP & SERVICE', A.filter(a => ['leadership', 'service', 'teaching', 'club'].includes(a.category)));
     section('WORK EXPERIENCE', A.filter(a => a.category === 'work'));
     section('ADDITIONAL', A.filter(a => ['hobby', 'other'].includes(a.category)));
-    lines.push(''); lines.push('SKILLS & INTERESTS');
-    if (p.languages) lines.push('Languages: ' + p.languages);
-    if (p.certifications) lines.push('Certifications: ' + p.certifications);
-    if (p.interests) lines.push('Interests: ' + p.interests);
+    const skills = [];
+    if (p.languages) skills.push('Languages: ' + p.languages);
+    const certs = S.all('certs').map(c => (c.name === 'Other' ? c.nameOther : c.name) + (c.expires ? ' (valid through ' + C.fmtDate(c.expires, { month: 'short', year: 'numeric' }) + ')' : '')).filter(Boolean);
+    if (p.certifications) certs.unshift(p.certifications);
+    if (certs.length) skills.push('Certifications: ' + certs.join('; '));
+    if (p.interests) skills.push('Interests: ' + p.interests);
+    if (skills.length) { lines.push(''); lines.push('SKILLS & INTERESTS'); for (const s of skills) lines.push(s); }
     return lines.join('\n');
   }
   function amcasWorksheet() {
@@ -834,7 +837,7 @@
   function openJournalModal(existing) {
     const spec = [
       { key: 'date', label: 'Date', type: 'date', required: true, default: C.todayISO() },
-      { key: 'activityId', label: 'Related activity', type: 'select', groups: activityGroups(true), placeholder: 'None' },
+      { key: 'activityId', label: 'Related activity', type: 'select', groups: activityGroups(true), placeholder: 'None', missingLabel: () => 'Deleted activity' },
       { key: 'title', label: 'Title', type: 'text', full: true, placeholder: 'The patient who asked me to stay' },
       { key: 'text', label: 'Reflection', type: 'textarea', full: true, tall: true, required: true, placeholder: 'What happened, what you felt, what you learned. No patient names or identifying details.' },
     ];
