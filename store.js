@@ -173,16 +173,20 @@
       this._pending += 1;
       try {
         await fn();
+        this._writeOk();
       } catch (e) {
         if (e && e.code === 'unavailable') {
           await new Promise(r => setTimeout(r, 400 + Math.random() * 600));
-          try { await fn(); } catch (e2) { this._writeFailed(e2); }
+          try { await fn(); this._writeOk(); } catch (e2) { this._writeFailed(e2); }
         } else {
           this._writeFailed(e);
         }
       } finally {
         this._pending -= 1;
       }
+    },
+    _writeOk() {
+      if (this.status.kind === 'bad') { this.status = { text: 'Synced to your Claude artifact database', kind: 'good' }; this._emit(); }
     },
     _writeFailed(e) {
       console.error('write failed', e);
@@ -206,6 +210,8 @@
       if (!hasAny && !obj.settings) throw new Error('Not a Pre-Med Ledger backup file.');
       if (mode === 'replace') {
         for (const col of COLLECTIONS) for (const id of Array.from(this.data[col].keys())) await this.remove(col, id);
+        this.settings = mergeSettings(defaultSettings(), obj.settings || {});
+        await this.saveSettings({});
       }
       let n = 0;
       for (const col of COLLECTIONS) {
@@ -216,7 +222,7 @@
           n += 1;
         }
       }
-      if (obj.settings) await this.saveSettings(obj.settings);
+      if (obj.settings && mode !== 'replace') await this.saveSettings(obj.settings);
       return n;
     },
     async loadSeed() {
@@ -227,15 +233,19 @@
     },
     async clearAll() {
       for (const col of COLLECTIONS) for (const id of Array.from(this.data[col].keys())) await this.remove(col, id);
-      await this.saveSettings(defaultSettings());
+      this.settings = defaultSettings();
+      await this.saveSettings({});
     },
   };
 
+  // Fixed-shape settings objects merge one level deep so a partial patch keeps the other keys;
+  // map-like objects (milestonesDone) and arrays replace wholesale so keys can be removed.
+  const DEEP_MERGE = new Set(['goals', 'tradition', 'profile']);
   function mergeSettings(base, patch) {
     const out = Object.assign({}, base);
     for (const k of Object.keys(patch || {})) {
       const v = patch[k];
-      if (v && typeof v === 'object' && !Array.isArray(v) && base[k] && typeof base[k] === 'object') out[k] = Object.assign({}, base[k], v);
+      if (DEEP_MERGE.has(k) && v && typeof v === 'object' && !Array.isArray(v) && base[k] && typeof base[k] === 'object') out[k] = Object.assign({}, base[k], v);
       else out[k] = v;
     }
     return out;

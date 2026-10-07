@@ -121,7 +121,7 @@
   // Weekly average over the trailing N weeks.
   function trailingWeeklyAverage(logs, weeks, endISO) {
     const end = parseISO(endISO || todayISO()) || new Date();
-    const start = new Date(end.getTime() - weeks * 7 * 86400000);
+    const start = new Date(end.getFullYear(), end.getMonth(), end.getDate() - weeks * 7 + 1);
     const from = toISO(start), to = toISO(end);
     return sumHours(logs, { from: from, to: to }) / weeks;
   }
@@ -209,17 +209,21 @@
   }
 
   // Full academic summary: cumulative Cornell/AMCAS/BCPM/AO, per-term rows, credits.
+  // Grades that earn no credit toward graduation.
+  const NOT_EARNED = ['IP', 'W', 'U', 'UX', 'F', 'INC', 'NGR', 'V'];
   function academicSummary(courses) {
     const graded = courses.filter(c => gradePoints(c.grade, 'cornell') !== null);
-    const bcpm = graded.filter(c => c.bcpm);
-    const ao = graded.filter(c => !c.bcpm);
+    const gradedAmcas = courses.filter(c => gradePoints(c.grade, 'amcas') !== null);
+    const bcpm = gradedAmcas.filter(c => c.bcpm);
+    const ao = gradedAmcas.filter(c => !c.bcpm);
     const terms = {};
     for (const c of courses) {
       const t = c.term || 'Unassigned';
       if (!terms[t]) terms[t] = { term: t, order: termOrder(t), courses: [], credits: 0, inProgress: 0 };
       terms[t].courses.push(c);
       const cr = Number(c.credits) || 0;
-      if ((c.grade || '').toUpperCase() === 'IP') terms[t].inProgress += cr; else if (!CFG.nonGpaGrades.includes((c.grade || '').toUpperCase()) || (c.grade || '').toUpperCase() === 'S') terms[t].credits += cr;
+      const g = (c.grade || '').toUpperCase();
+      if (g === 'IP') terms[t].inProgress += cr; else if (!NOT_EARNED.includes(g)) terms[t].credits += cr;
     }
     const termRows = Object.values(terms).sort((a, b) => a.order - b.order).map(t => {
       const g = gpaOf(t.courses, 'cornell'), am = gpaOf(t.courses, 'amcas');
@@ -228,13 +232,13 @@
     });
     const earned = courses.reduce((s, c) => {
       const g = (c.grade || '').toUpperCase();
-      if (g === 'IP' || g === 'W' || g === 'U' || g === 'F' || g === 'INC') return s;
+      if (NOT_EARNED.includes(g)) return s;
       return s + (Number(c.credits) || 0);
     }, 0);
     const inProgress = courses.reduce((s, c) => (c.grade || '').toUpperCase() === 'IP' ? s + (Number(c.credits) || 0) : s, 0);
     return {
       cornell: gpaOf(graded, 'cornell'),
-      amcas: gpaOf(graded, 'amcas'),
+      amcas: gpaOf(gradedAmcas, 'amcas'),
       bcpm: gpaOf(bcpm, 'amcas'),
       ao: gpaOf(ao, 'amcas'),
       terms: termRows,
@@ -275,7 +279,8 @@
         const title = (c.title || '').toLowerCase();
         return !!(p.titleMatch && p.titleMatch.some(t => title.includes(t)));
       });
-      const done = hits.filter(c => (c.grade || '').toUpperCase() !== 'IP');
+      const FAILED = ['IP', 'W', 'F', 'U', 'UX', 'INC', 'NGR', 'V'];
+      const done = hits.filter(c => !FAILED.includes((c.grade || '').toUpperCase()));
       const inProg = hits.filter(c => (c.grade || '').toUpperCase() === 'IP');
       return { key: p.key, label: p.label, hint: p.hint, courses: hits, done: done, inProgress: inProg,
         state: done.length ? 'done' : inProg.length ? 'progress' : 'todo' };
