@@ -191,10 +191,11 @@
     const phys = new Set(), specs = new Set(); let primaryCare = 0;
     for (const l of L) {
       if (!ids.has(l.activityId)) continue;
-      if (cf && (l.date || '') < cf) continue;
+      const h = cf ? C.logOverlapHours(l, cf, '') : (Number(l.hours) || 0);
+      if (!h) continue;
       if (l.physician) phys.add(l.physician.trim().toLowerCase());
       const sp = (l.specialty || '').trim().toLowerCase();
-      if (sp) { specs.add(sp); if (CFG.primaryCareWords.some(w => sp.includes(w))) primaryCare += Number(l.hours) || 0; }
+      if (sp) { specs.add(sp); if (CFG.primaryCareWords.some(w => sp.includes(w))) primaryCare += h; }
     }
     return { physicians: phys.size, specialties: specs.size, primaryCare: primaryCare };
   }
@@ -382,18 +383,21 @@
     const listHost = h('div', { class: 'section', style: { marginTop: '12px' } });
     main.appendChild(listHost);
 
+    function periodFrom() {
+      if (st.period === '30') return C.toISO(new Date(Date.now() - 30 * 86400000));
+      if (st.period === '90') return C.toISO(new Date(Date.now() - 90 * 86400000));
+      if (st.period === 'count') return countFrom();
+      if (st.period === 'year') return new Date().getFullYear() + '-01-01';
+      return '';
+    }
     function filtered() {
-      let from = '';
-      if (st.period === '30') from = C.toISO(new Date(Date.now() - 30 * 86400000));
-      else if (st.period === '90') from = C.toISO(new Date(Date.now() - 90 * 86400000));
-      else if (st.period === 'count') from = countFrom();
-      else if (st.period === 'year') from = new Date().getFullYear() + '-01-01';
+      const from = periodFrom();
       const ql = st.q.trim().toLowerCase();
       return L.filter(l => {
         const a = actById(l.activityId);
         if (st.cat !== 'all' && (!a || a.category !== st.cat)) return false;
         if (st.activity && l.activityId !== st.activity) return false;
-        if (from && (l.date || '') < from) return false;
+        if (from && !C.logOverlapHours(l, from, '')) return false;
         if (ql) { const hay = [(a && a.name) || '', l.note, l.physician, l.specialty, l.setting, l.verifiedBy].join(' ').toLowerCase(); if (!hay.includes(ql)) return false; }
         return true;
       });
@@ -401,8 +405,9 @@
     function renderList() {
       listHost.textContent = '';
       const rows = filtered();
-      const total = rows.reduce((s, l) => s + (Number(l.hours) || 0), 0);
-      listHost.appendChild(h('div', { class: 'section-head' }, h('h2', null, rows.length + ' entr' + (rows.length === 1 ? 'y' : 'ies')), h('span', { class: 'b num' }, hrs(total) + ' hours')));
+      const from = periodFrom();
+      const total = rows.reduce((s, l) => s + (from ? C.logOverlapHours(l, from, '') : (Number(l.hours) || 0)), 0);
+      listHost.appendChild(h('div', { class: 'section-head' }, h('h2', null, rows.length + ' entr' + (rows.length === 1 ? 'y' : 'ies')), h('span', { class: 'b num' }, hrs(total) + ' hours' + (from ? ' in this period' : ''))));
       if (!rows.length) { listHost.appendChild(U.empty(L.length ? 'No entries match these filters.' : 'No entries yet. Use the quick entry above.')); return; }
       const list = h('div', { class: 'list' });
       const limit = st.showAll ? rows.length : 60;
@@ -466,7 +471,7 @@
     const rows = t.years.map(y => ({ y: y.label + (y.current ? ' (current)' : ''), range: C.fmtDate(y.from) + ' – ' + C.fmtDate(y.to), work: hrs(y.work), community: hrs(y.community), campus: hrs(y.campus), flex: hrs(y.flex), total: hrs(y.total), met: y.met, past: y.past, future: y.from > C.todayISO() }));
     return U.section('Cornell Tradition by fellowship year', [btn('Edit targets & dates', { size: 'sm', kind: 'ghost', onClick: () => U.navigate('settings') })],
       h('p', { class: 'small ink2', style: { marginBottom: '10px' } }, 'Each fellowship year needs ' + tcfg.workHours + ' h paid work, ' + tcfg.serviceHours + ' h service (at least ' + tcfg.communityHours + ' h community service, the rest community or campus), and ' + tcfg.flexHours + ' flex hours of either, for ' + tcfg.totalHours + ' h in total, plus a ' + tcfg.minGpa + ' cumulative GPA. Hours count only between the Sunday before fall classes and the end of spring classes. Research and for-credit activities never count. Off-campus hours need a supervisor endorsement in the spring re-application.'),
-      U.table({ cols: [{ label: 'Year', key: 'y' }, { label: 'Dates', key: 'range' }, { label: 'Work h', key: 'work', num: true }, { label: 'Community h', key: 'community', num: true }, { label: 'Campus h', key: 'campus', num: true }, { label: 'Flex h', key: 'flex', num: true }, { label: 'Total h', key: 'total', num: true }, { label: 'Status', render: r => r.met ? chip('Met', 'good') : r.future ? chip('Not started', 'outline') : r.past ? chip('Short', 'bad') : chip('In progress', 'warn') }], rows }),
+      U.table({ cols: [{ label: 'Year', key: 'y', class: 'nowrap' }, { label: 'Dates', key: 'range', class: 'nowrap' }, { label: 'Work h', key: 'work', num: true }, { label: 'Community h', key: 'community', num: true }, { label: 'Campus h', key: 'campus', num: true }, { label: 'Flex h', key: 'flex', num: true }, { label: 'Total h', key: 'total', num: true }, { label: 'Status', render: r => r.met ? chip('Met', 'good') : r.future ? chip('Not started', 'outline') : r.past ? chip('Short', 'bad') : chip('In progress', 'warn') }], rows }),
       t.outside ? h('p', { class: 'tiny muted', style: { marginTop: '8px' } }, hrs(t.outside) + ' tagged hours fall outside every fellowship year (summer or before Cornell) and are not counted.') : null);
   }
 
@@ -789,7 +794,7 @@
     const ta = h('textarea', { class: 'textarea tall', id: 'resume-editor', value: draft, spellcheck: true, onInput: e => { st.draft = e.target.value; } });
     ta.dataset.rerenderOk = '';
     const label = h('input', { class: 'input', id: 'resume-label', placeholder: 'Version label, e.g. "Fall 2026 – research apps"', value: st.label, onInput: e => { st.label = e.target.value; } });
-    main.appendChild(h('div', { class: 'grid', style: { gridTemplateColumns: 'minmax(0, 2fr) minmax(0, 1fr)' } },
+    main.appendChild(h('div', { class: 'grid grid-resume' },
       h('div', { class: 'stack' },
         h('div', { class: 'row spread' }, h('div', { class: 'card-title' }, cur ? 'Editing from: ' + (cur.label || 'untitled') + ' · ' + C.fmtDate(cur.date || cur.createdAt) : 'No saved version yet'), h('span', { class: 'tiny muted num' }, draft.length + ' chars')),
         ta,
@@ -960,7 +965,7 @@
       { key: 'minGpa', label: 'Minimum cumulative GPA', type: 'number', min: 0, step: 0.1, default: t.minGpa },
     ], {});
     const wf = draftForm('windows', windows.flatMap((w, i) => [
-      { key: 'label' + i, label: 'Fellowship year ' + (i + 1) + ' label', type: 'text', default: w.label },
+      { key: 'label' + i, label: 'Fellowship year ' + (i + 1) + ' label', type: 'text', default: w.label, full: true },
       { key: 'from' + i, label: 'Counts from (Sunday before fall classes)', type: 'date', default: w.from },
       { key: 'to' + i, label: 'Counts through (end of spring classes)', type: 'date', default: w.to },
     ]), {});

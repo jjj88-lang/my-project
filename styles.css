@@ -194,6 +194,8 @@ button { cursor: pointer; }
 .grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .grid-kpi { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
 .grid-cards { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.grid-resume { grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); }
+@media (max-width: 860px) { .grid-resume { grid-template-columns: 1fr; } }
 @media (max-width: 860px) { .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; } .grid-kpi { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; min-width: 0; }
 .card.pad-0 { padding: 0; }
