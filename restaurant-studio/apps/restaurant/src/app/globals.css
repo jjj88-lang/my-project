@@ -1,0 +1,557 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. The --c-* and --radius* values are set per client on <html>
+ * from the theme in site.json (see src/lib/site/theme.ts), so one stylesheet
+ * serves every brand.
+ */
+@theme inline {
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-raised: var(--c-raised);
+  --color-ink: var(--c-ink);
+  --color-muted: var(--c-muted);
+  --color-line: var(--c-line);
+  --color-accent: var(--c-accent);
+  --color-on-accent: var(--c-on-accent);
+
+  --font-display: var(--ff-display), ui-serif, Georgia, "Times New Roman", serif;
+  --font-sans: var(--ff-body), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  --radius-site: var(--radius);
+  --radius-site-lg: var(--radius-lg);
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+:root {
+  --header-h: 4.25rem;
+  --gutter: clamp(1.25rem, 5vw, 3.5rem);
+  --actionbar-h: 0px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 5rem;
+  }
+}
+
+@media (max-width: 767px) {
+  :root {
+    --actionbar-h: 4rem;
+  }
+}
+
+html {
+  background: var(--c-bg);
+  color: var(--c-ink);
+  scroll-behavior: smooth;
+  scroll-padding-top: calc(var(--header-h) + 4.5rem);
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--c-accent) 40%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 3px;
+}
+
+/* Typography ---------------------------------------------------------------- */
+
+.display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  line-height: 1.02;
+  letter-spacing: -0.015em;
+  text-wrap: balance;
+}
+
+[data-fonts="modern"] .display {
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1;
+}
+
+[data-fonts="classic"] .display {
+  font-weight: 500;
+  letter-spacing: -0.02em;
+}
+
+.display em,
+.display .accent-line {
+  font-style: italic;
+  font-weight: 400;
+  color: var(--c-accent);
+}
+
+[data-fonts="modern"] .display em,
+[data-fonts="modern"] .display .accent-line {
+  font-style: normal;
+  font-weight: 700;
+}
+
+.eyebrow {
+  font-family: var(--font-sans);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+}
+
+.prose-site p + p {
+  margin-top: 1.1em;
+}
+
+.nums {
+  font-variant-numeric: lining-nums tabular-nums;
+}
+
+/* Layout helpers ------------------------------------------------------------ */
+
+.container-site {
+  width: 100%;
+  max-width: 84rem;
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.hairline {
+  height: 1px;
+  background: var(--c-line);
+}
+
+/* Dotted leader between a menu item and its price. */
+.leader {
+  flex: 1 1 1.5rem;
+  min-width: 1.5rem;
+  border-bottom: 1px dotted color-mix(in srgb, var(--c-ink) 34%, transparent);
+  transform: translateY(-0.32em);
+}
+
+/* Buttons ------------------------------------------------------------------- */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding: 0.7rem 1.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    background-color 0.25s var(--ease-out-soft),
+    color 0.25s var(--ease-out-soft),
+    border-color 0.25s var(--ease-out-soft),
+    transform 0.25s var(--ease-out-soft);
+}
+
+.btn:active {
+  transform: translateY(1px);
+}
+
+.btn-solid {
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+}
+
+.btn-solid:hover {
+  background: color-mix(in srgb, var(--c-accent) 86%, var(--c-ink));
+}
+
+.btn-ghost {
+  border-color: color-mix(in srgb, var(--c-ink) 38%, transparent);
+  color: var(--c-ink);
+}
+
+.btn-ghost:hover {
+  border-color: var(--c-accent);
+  color: var(--c-accent);
+}
+
+.btn-sm {
+  min-height: 2.6rem;
+  padding: 0.5rem 1.1rem;
+  font-size: 0.74rem;
+}
+
+.btn[aria-disabled="true"],
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.link-arrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--c-accent);
+  padding-block: 0.35rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--c-accent) 45%, transparent);
+  transition: border-color 0.25s var(--ease-out-soft), gap 0.25s var(--ease-out-soft);
+}
+
+.link-arrow:hover {
+  border-color: var(--c-accent);
+  gap: 0.85rem;
+}
+
+.text-link {
+  color: var(--c-accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.text-link:hover {
+  text-decoration-thickness: 2px;
+}
+
+/* Texture ------------------------------------------------------------------- */
+
+/* Fine film grain over the page. Purely decorative. */
+.grain::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 1 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Overlapping-wave pattern, tinted with the accent color through a mask. */
+.pattern-waves {
+  background-color: var(--c-accent);
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='36' viewBox='0 0 72 36' fill='none' stroke='%23000' stroke-width='1'%3E%3Ccircle cx='36' cy='36' r='34'/%3E%3Ccircle cx='36' cy='36' r='25'/%3E%3Ccircle cx='36' cy='36' r='16'/%3E%3Ccircle cx='36' cy='36' r='7'/%3E%3Ccircle cx='0' cy='18' r='34'/%3E%3Ccircle cx='0' cy='18' r='25'/%3E%3Ccircle cx='0' cy='18' r='16'/%3E%3Ccircle cx='0' cy='18' r='7'/%3E%3Ccircle cx='72' cy='18' r='34'/%3E%3Ccircle cx='72' cy='18' r='25'/%3E%3Ccircle cx='72' cy='18' r='16'/%3E%3Ccircle cx='72' cy='18' r='7'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='72' height='36' viewBox='0 0 72 36' fill='none' stroke='%23000' stroke-width='1'%3E%3Ccircle cx='36' cy='36' r='34'/%3E%3Ccircle cx='36' cy='36' r='25'/%3E%3Ccircle cx='36' cy='36' r='16'/%3E%3Ccircle cx='36' cy='36' r='7'/%3E%3Ccircle cx='0' cy='18' r='34'/%3E%3Ccircle cx='0' cy='18' r='25'/%3E%3Ccircle cx='0' cy='18' r='16'/%3E%3Ccircle cx='0' cy='18' r='7'/%3E%3Ccircle cx='72' cy='18' r='34'/%3E%3Ccircle cx='72' cy='18' r='25'/%3E%3Ccircle cx='72' cy='18' r='16'/%3E%3Ccircle cx='72' cy='18' r='7'/%3E%3C/svg%3E");
+  -webkit-mask-size: 72px 36px;
+  mask-size: 72px 36px;
+}
+
+/* Art panel: the designed stand-in for a photo slot. */
+.art-panel {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(90% 70% at 50% 112%, color-mix(in srgb, var(--c-accent) 34%, transparent), transparent 62%),
+    radial-gradient(70% 55% at 88% -8%, color-mix(in srgb, var(--c-accent) 13%, transparent), transparent 70%),
+    var(--c-surface);
+}
+
+.art-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: linear-gradient(
+    180deg,
+    transparent 40%,
+    color-mix(in srgb, var(--c-bg) 55%, transparent)
+  );
+}
+
+.art-panel .art-motif {
+  filter: drop-shadow(0 0 28px color-mix(in srgb, var(--c-accent) 45%, transparent));
+}
+
+/* Motion -------------------------------------------------------------------- */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(1.4rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes ember {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  12% {
+    opacity: var(--ember-o, 0.9);
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(var(--ember-x, 2rem), -70vh, 0) scale(0.3);
+  }
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.72;
+    transform: scale(1.025);
+  }
+}
+
+@keyframes marquee {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .enter {
+    animation: rise-in 0.9s var(--ease-out-soft) both;
+    animation-delay: calc(var(--i, 0) * 110ms + 120ms);
+  }
+
+  .enter-fade {
+    animation: fade-in 1.4s ease-out both;
+  }
+
+  /* Scroll-triggered reveal with no JavaScript. Browsers without support simply show the content. */
+  @supports (animation-timeline: view()) {
+    .reveal {
+      animation: rise-in linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 38%;
+    }
+  }
+
+  .ember {
+    animation: ember var(--ember-d, 9s) linear infinite;
+    animation-delay: var(--ember-delay, 0s);
+  }
+
+  .breathe {
+    animation: breathe 7s ease-in-out infinite;
+    transform-origin: 50% 70%;
+  }
+
+  .marquee-track {
+    animation: marquee 48s linear infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  .ember {
+    display: none;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Forms --------------------------------------------------------------------- */
+
+.field-label {
+  display: block;
+  margin-bottom: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--c-ink);
+}
+
+.field-input {
+  display: block;
+  width: 100%;
+  min-height: 3rem;
+  padding: 0.7rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--c-ink) 42%, transparent);
+  border-radius: var(--radius);
+  background: color-mix(in srgb, var(--c-bg) 60%, var(--c-surface));
+  color: var(--c-ink);
+  font: inherit;
+  font-size: 1rem; /* 16px keeps iOS from zooming on focus */
+  line-height: 1.4;
+  transition: border-color 0.2s ease;
+}
+
+.field-input::placeholder {
+  color: color-mix(in srgb, var(--c-ink) 55%, transparent);
+}
+
+.field-input:hover {
+  border-color: color-mix(in srgb, var(--c-ink) 62%, transparent);
+}
+
+.field-input:focus-visible {
+  outline: 2px solid var(--c-accent);
+  outline-offset: 1px;
+  border-color: var(--c-accent);
+}
+
+.field-input[aria-invalid="true"] {
+  border-color: var(--c-danger, #e5786d);
+}
+
+textarea.field-input {
+  min-height: 8rem;
+  resize: vertical;
+}
+
+select.field-input {
+  appearance: none;
+  padding-right: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+}
+
+input[type="date"].field-input {
+  min-width: 0;
+}
+
+.field-error {
+  margin-top: 0.4rem;
+  font-size: 0.86rem;
+  color: var(--c-danger, #e5786d);
+}
+
+.field-help {
+  margin-top: 0.4rem;
+  font-size: 0.86rem;
+  color: var(--c-muted);
+}
+
+/* Honeypot: kept out of sight and out of the accessibility tree, without display:none (bots check for that). */
+.hp-field {
+  position: absolute !important;
+  left: -9999px !important;
+  width: 1px !important;
+  height: 1px !important;
+  overflow: hidden !important;
+}
+
+/* Dialogs (mobile menu, lightbox) --------------------------------------------- */
+
+dialog {
+  color: inherit;
+}
+
+dialog::backdrop {
+  background: color-mix(in srgb, #000 78%, transparent);
+}
+
+/* Skip link ------------------------------------------------------------------- */
+
+.skip-link {
+  position: absolute;
+  left: 1rem;
+  top: -4rem;
+  z-index: 100;
+  padding: 0.7rem 1rem;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-weight: 600;
+  border-radius: var(--radius);
+  transition: top 0.15s ease;
+}
+
+.skip-link:focus {
+  top: 1rem;
+}
+
+/* Print: a clean, ink-friendly menu. ------------------------------------------- */
+
+@media print {
+  :root {
+    --c-bg: #fff !important;
+    --c-surface: #fff !important;
+    --c-raised: #fff !important;
+    --c-ink: #000 !important;
+    --c-muted: #333 !important;
+    --c-line: #999 !important;
+    --c-accent: #000 !important;
+  }
+
+  .no-print,
+  .grain::after {
+    display: none !important;
+  }
+
+  html {
+    font-size: 11pt;
+  }
+
+  .menu-section {
+    break-inside: avoid-page;
+  }
+}
+
+/* Wordmark (used when a client has no logo image) ------------------------------ */
+
+.wordmark {
+  font-family: var(--font-display);
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  margin-right: -0.26em;
+}
+
+[data-fonts="modern"] .wordmark {
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  text-transform: none;
+  margin-right: 0;
+}
+
+[data-fonts="classic"] .wordmark {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  margin-right: 0;
+}
+
+/* Lock page scroll behind an open full-screen dialog. */
+html:has(dialog[open]) {
+  overflow: hidden;
+}

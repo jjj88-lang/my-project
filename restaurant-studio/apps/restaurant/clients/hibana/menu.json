@@ -1,0 +1,225 @@
+{
+  "$schema": "../../schema/menu.schema.json",
+  "currency": "USD",
+  "updated": "2026-11-01",
+  "intro": "Hibachi dinners are cooked at your table. Sushi is made to order at the bar.",
+  "notes": [
+    "Consuming raw or undercooked meats, poultry, seafood, shellfish or eggs may increase your risk of foodborne illness, especially if you have certain medical conditions.",
+    "Please tell your server about any allergies before you order. Our kitchen handles shellfish, fish, soy, sesame, wheat, eggs and peanuts.",
+    "This is a sample menu for a fictional restaurant. Items and prices are illustrative."
+  ],
+  "tags": {},
+  "sections": [
+    {
+      "id": "small-plates",
+      "name": "Small Plates",
+      "description": "To share while the grill heats up.",
+      "items": [
+        { "name": "Edamame", "description": "Steamed soybeans, sea salt.", "price": 6.5, "tags": ["vg", "gf"] },
+        { "name": "Spicy Garlic Edamame", "description": "Wok-tossed with chili, garlic and soy.", "price": 7.5, "tags": ["vg", "spicy"] },
+        { "name": "Pork Gyoza", "description": "Six pan-seared dumplings, citrus soy.", "price": 8.5 },
+        { "name": "Vegetable Gyoza", "description": "Six dumplings, steamed or pan-seared.", "price": 8, "tags": ["v"] },
+        { "name": "Shrimp Tempura", "description": "Four shrimp and seasonal vegetables, tentsuyu.", "price": 11.5, "tags": ["shellfish"] },
+        { "name": "Agedashi Tofu", "description": "Crisp tofu in warm dashi broth, scallion, grated daikon.", "price": 8 },
+        {
+          "name": "Yellowtail Jalapeño",
+          "description": "Sliced hamachi, serrano, yuzu ponzu, micro cilantro.",
+          "price": 16,
+          "tags": ["raw", "spicy", "house"],
+          "featured": true,
+          "media": { "art": "fish" }
+        },
+        { "name": "Tuna Tataki", "description": "Seared ahi, ponzu, scallion, toasted sesame.", "price": 15, "tags": ["raw"] },
+        { "name": "Beef Negimaki", "description": "Grilled ribeye rolled around scallion, teriyaki glaze.", "price": 13 },
+        { "name": "Chicken Karaage", "description": "Japanese fried chicken, lemon, spicy mayo.", "price": 10.5 }
+      ]
+    },
+    {
+      "id": "soup-salad",
+      "name": "Soup & Salad",
+      "items": [
+        { "name": "Miso Soup", "description": "Tofu, wakame, scallion.", "price": 3.5 },
+        { "name": "Clear Onion Soup", "description": "Light broth, mushroom, crisp onion.", "price": 3.5, "tags": ["gf"] },
+        { "name": "House Salad", "description": "Crisp greens with our ginger dressing.", "price": 5, "tags": ["vg", "gf"] },
+        { "name": "Seaweed Salad", "description": "Marinated wakame, sesame.", "price": 6.5, "tags": ["vg"] },
+        { "name": "Sunomono", "description": "Cucumber, rice vinegar, sesame. Add crab or octopus for 3.", "price": 7, "tags": ["v"] }
+      ]
+    },
+    {
+      "id": "hibachi-dinners",
+      "name": "Hibachi Dinners",
+      "description": "Cooked at your table.",
+      "note": "Every dinner includes clear onion soup, house salad, a shrimp appetizer, hibachi vegetables and fried rice. Steamed rice on request.",
+      "items": [
+        { "name": "Vegetable", "description": "Zucchini, onion, mushroom, broccoli, carrot and tofu.", "price": 19, "tags": ["v", "gfo"] },
+        { "name": "Chicken", "description": "Teriyaki or garlic butter.", "price": 24, "tags": ["gfo"] },
+        { "name": "New York Strip", "description": "Eight ounces, cooked to your temperature.", "price": 29, "tags": ["gfo"] },
+        { "name": "Filet Mignon", "description": "Six ounces of center-cut tenderloin.", "price": 36, "tags": ["gfo", "house"] },
+        { "name": "Shrimp", "description": "Ten jumbo shrimp, lemon and garlic butter.", "price": 28, "tags": ["shellfish", "gfo"] },
+        { "name": "Atlantic Salmon", "description": "Seared, with teriyaki on the side.", "price": 28, "tags": ["gfo"] },
+        { "name": "Sea Scallops", "description": "Seared hard, finished with butter and soy.", "price": 33, "tags": ["shellfish", "gfo"] },
+        { "name": "Lobster Tail", "description": "Two cold-water tails, garlic butter.", "price": 46, "tags": ["shellfish", "gfo"] }
+      ]
+    },
+    {
+      "id": "hibachi-combinations",
+      "name": "Hibachi Combinations",
+      "note": "Served with the same soup, salad, shrimp appetizer, vegetables and fried rice.",
+      "items": [
+        { "name": "Chicken & Shrimp", "price": 31, "tags": ["shellfish", "gfo"] },
+        { "name": "Steak & Chicken", "price": 32, "tags": ["gfo"] },
+        { "name": "Steak & Shrimp", "price": 35, "tags": ["shellfish", "gfo"] },
+        { "name": "Filet Mignon & Scallops", "price": 44, "tags": ["shellfish", "gfo"] },
+        {
+          "name": "Filet Mignon & Lobster",
+          "description": "Center-cut filet and a cold-water lobster tail, seared together on the grill.",
+          "price": 52,
+          "tags": ["shellfish", "gfo", "house"],
+          "featured": true,
+          "media": { "art": "flame" }
+        },
+        {
+          "name": "The Hibana for Two",
+          "description": "Filet mignon, chicken, shrimp and lobster for two guests, with a bottle of house sake.",
+          "price": 104,
+          "tags": ["shellfish"]
+        }
+      ]
+    },
+    {
+      "id": "kids-hibachi",
+      "name": "Kids' Hibachi",
+      "note": "For guests 12 and under. Includes soup, vegetables and fried rice.",
+      "items": [
+        { "name": "Chicken", "price": 13 },
+        { "name": "Shrimp", "price": 14, "tags": ["shellfish"] },
+        { "name": "Steak", "price": 15 }
+      ]
+    },
+    {
+      "id": "nigiri-sashimi",
+      "name": "Nigiri & Sashimi",
+      "description": "Cut to order. Nigiri is two pieces, sashimi is three.",
+      "items": [
+        { "name": "Tuna (Maguro)", "variants": [ { "label": "Nigiri", "price": 8 }, { "label": "Sashimi", "price": 11 } ], "tags": ["raw"] },
+        { "name": "Fatty Tuna (Toro)", "variants": [ { "label": "Nigiri", "price": 14 }, { "label": "Sashimi", "price": 19 } ], "tags": ["raw"] },
+        { "name": "Salmon (Sake)", "variants": [ { "label": "Nigiri", "price": 7 }, { "label": "Sashimi", "price": 10 } ], "tags": ["raw"] },
+        { "name": "Yellowtail (Hamachi)", "variants": [ { "label": "Nigiri", "price": 8 }, { "label": "Sashimi", "price": 11 } ], "tags": ["raw"] },
+        { "name": "Sea Bream (Madai)", "variants": [ { "label": "Nigiri", "price": 9 }, { "label": "Sashimi", "price": 12 } ], "tags": ["raw"] },
+        { "name": "Scallop (Hotate)", "variants": [ { "label": "Nigiri", "price": 9 }, { "label": "Sashimi", "price": 12 } ], "tags": ["raw", "shellfish"] },
+        { "name": "Shrimp (Ebi)", "variants": [ { "label": "Nigiri", "price": 6 }, { "label": "Sashimi", "price": 9 } ], "tags": ["shellfish"] },
+        { "name": "Freshwater Eel (Unagi)", "variants": [ { "label": "Nigiri", "price": 8 }, { "label": "Sashimi", "price": 11 } ] },
+        { "name": "Salmon Roe (Ikura)", "variants": [ { "label": "Nigiri", "price": 9 } ], "tags": ["raw"] },
+        { "name": "Sweet Egg (Tamago)", "variants": [ { "label": "Nigiri", "price": 5 } ], "tags": ["v"] }
+      ]
+    },
+    {
+      "id": "sushi-bar-plates",
+      "name": "From the Sushi Bar",
+      "note": "Served with miso soup.",
+      "items": [
+        {
+          "name": "Chef's Nigiri Selection",
+          "description": "Ten pieces chosen by the chef from the day's fish, with a negitoro hand roll.",
+          "price": 42,
+          "tags": ["raw", "house"],
+          "featured": true,
+          "media": { "art": "nigiri" }
+        },
+        { "name": "Sushi Dinner", "description": "Seven pieces of nigiri and a tuna roll.", "price": 28, "tags": ["raw"] },
+        { "name": "Sashimi Dinner", "description": "Fifteen slices of the day's fish, steamed rice.", "price": 34, "tags": ["raw", "gf"] },
+        { "name": "Chirashi", "description": "Assorted sashimi over seasoned rice.", "price": 30, "tags": ["raw"] },
+        { "name": "Sushi & Sashimi for Two", "description": "Ten nigiri, eighteen slices of sashimi and two rolls of your choice.", "price": 78, "tags": ["raw"] }
+      ]
+    },
+    {
+      "id": "classic-rolls",
+      "name": "Classic Rolls",
+      "description": "Six to eight pieces. Any roll can be made as a hand roll.",
+      "items": [
+        { "name": "California", "description": "Crab, avocado, cucumber.", "price": 8, "tags": ["shellfish"] },
+        { "name": "Spicy Tuna", "description": "Tuna, chili oil, cucumber.", "price": 9.5, "tags": ["raw", "spicy"] },
+        { "name": "Salmon Avocado", "price": 9, "tags": ["raw"] },
+        { "name": "Philadelphia", "description": "Smoked salmon, cream cheese, cucumber.", "price": 9.5 },
+        { "name": "Shrimp Tempura", "description": "Tempura shrimp, avocado, eel sauce.", "price": 10.5, "tags": ["shellfish"] },
+        { "name": "Eel Avocado", "price": 10 },
+        { "name": "Negihama", "description": "Yellowtail and scallion.", "price": 9, "tags": ["raw"] },
+        { "name": "Avocado Cucumber", "price": 7, "tags": ["vg"] },
+        { "name": "Sweet Potato Tempura", "price": 8, "tags": ["v"] }
+      ]
+    },
+    {
+      "id": "signature-rolls",
+      "name": "Signature Rolls",
+      "description": "Eight pieces, built at the bar.",
+      "items": [
+        {
+          "name": "Hibana",
+          "description": "Spicy tuna and cucumber inside, torched salmon, serrano and yuzu kosho on top.",
+          "price": 18,
+          "tags": ["raw", "spicy", "house"],
+          "featured": true,
+          "media": { "art": "maki" }
+        },
+        { "name": "Dragon", "description": "Shrimp tempura and cucumber, topped with eel, avocado and eel sauce.", "price": 17, "tags": ["shellfish"] },
+        { "name": "Rainbow", "description": "California roll topped with tuna, salmon, yellowtail and avocado.", "price": 17, "tags": ["raw", "shellfish"] },
+        { "name": "Ember", "description": "Soft-shell crab, avocado and cucumber, seared spicy scallop on top.", "price": 19, "tags": ["raw", "shellfish", "spicy"] },
+        { "name": "River", "description": "Salmon three ways: fresh, smoked and torched, with lemon and ikura.", "price": 18, "tags": ["raw"] },
+        { "name": "Garden", "description": "Asparagus, avocado, cucumber and pickled radish, wrapped in soy paper.", "price": 13, "tags": ["vg"] },
+        { "name": "Crunchy Lobster", "description": "Tempura lobster, avocado, tobiko, spicy mayo.", "price": 22, "tags": ["shellfish"] }
+      ]
+    },
+    {
+      "id": "noodles-rice",
+      "name": "Noodles & Rice",
+      "items": [
+        { "name": "Yaki Udon", "description": "Thick wheat noodles stir-fried with vegetables. Chicken, steak or shrimp.", "price": 17 },
+        { "name": "Yakisoba", "description": "Stir-fried egg noodles, cabbage, onion, house sauce. Chicken, steak or shrimp.", "price": 16 },
+        { "name": "Chicken Katsu", "description": "Panko-crusted chicken cutlet, tonkatsu sauce, steamed rice.", "price": 19 },
+        { "name": "Salmon Teriyaki", "description": "Grilled salmon, house teriyaki, vegetables, steamed rice.", "price": 24 },
+        { "name": "Hibachi Fried Rice", "description": "A side for the table.", "price": 5, "tags": ["v"] }
+      ]
+    },
+    {
+      "id": "lunch",
+      "name": "Weekday Lunch",
+      "availability": "Monday to Friday, 11 am to 2:30 pm",
+      "note": "Hibachi lunches include soup, vegetables and fried rice. Bento boxes include miso soup, salad, rice, gyoza and a California roll.",
+      "items": [
+        { "name": "Hibachi Chicken Lunch", "price": 14 },
+        { "name": "Hibachi Steak Lunch", "price": 17 },
+        { "name": "Hibachi Shrimp Lunch", "price": 16, "tags": ["shellfish"] },
+        { "name": "Chicken Teriyaki Bento", "price": 16 },
+        { "name": "Salmon Teriyaki Bento", "price": 18 },
+        { "name": "Sushi Lunch", "description": "Five pieces of nigiri and a California roll.", "price": 17, "tags": ["raw", "shellfish"] },
+        { "name": "Two-Roll Lunch", "description": "Any two classic rolls with miso soup.", "price": 14 }
+      ]
+    },
+    {
+      "id": "dessert",
+      "name": "Dessert",
+      "items": [
+        { "name": "Mochi Ice Cream", "description": "Three pieces. Green tea, mango or strawberry.", "price": 7, "tags": ["v"] },
+        { "name": "Matcha Cheesecake", "description": "With black sesame crumb.", "price": 9, "tags": ["v"] },
+        { "name": "Tempura Ice Cream", "description": "Vanilla ice cream in a crisp shell, chocolate drizzle.", "price": 8.5, "tags": ["v"] }
+      ]
+    },
+    {
+      "id": "drinks",
+      "name": "Drinks",
+      "description": "Ask to see the full sake list.",
+      "items": [
+        { "name": "House Sake", "description": "Served warm or chilled.", "variants": [ { "label": "Small", "price": 7 }, { "label": "Large", "price": 12 } ] },
+        { "name": "Junmai Ginjo", "description": "Clean and gently floral.", "variants": [ { "label": "Glass", "price": 12 }, { "label": "Bottle", "price": 44 } ] },
+        { "name": "Nigori", "description": "Unfiltered, soft and lightly sweet.", "variants": [ { "label": "Glass", "price": 10 }, { "label": "Bottle", "price": 36 } ] },
+        { "name": "Japanese Beer", "description": "Lager on draft or by the bottle.", "price": 7 },
+        { "name": "Yuzu Highball", "description": "Japanese whisky, yuzu, soda.", "price": 13 },
+        { "name": "Lychee Martini", "description": "Vodka, lychee, a splash of sake.", "price": 13 },
+        { "name": "Smoked Old Fashioned", "description": "Japanese whisky, kokuto sugar, cherrywood smoke.", "price": 15 },
+        { "name": "Yuzu Lemonade", "price": 5, "tags": ["vg"] },
+        { "name": "Ramune Soda", "price": 4.5, "tags": ["vg"] },
+        { "name": "Hot Green Tea", "price": 3, "tags": ["vg"] }
+      ]
+    }
+  ]
+}
