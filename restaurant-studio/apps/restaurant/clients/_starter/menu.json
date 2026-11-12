@@ -1,0 +1,23 @@
+{
+  "$schema": "../../schema/menu.schema.json",
+  "currency": "USD",
+  "notes": [
+    "Please tell us about any allergies before you order."
+  ],
+  "sections": [
+    {
+      "id": "starters",
+      "name": "Starters",
+      "items": [
+        { "name": "First dish", "description": "A short description.", "price": 8, "tags": [] }
+      ]
+    },
+    {
+      "id": "mains",
+      "name": "Mains",
+      "items": [
+        { "name": "Second dish", "description": "A short description.", "price": 16, "featured": true }
+      ]
+    }
+  ]
+}

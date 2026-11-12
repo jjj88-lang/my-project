@@ -1,0 +1,11 @@
+# Real prospect research, CRM exports, client materials and Stripe link files.
+# This repository is public: nothing about real businesses or customers is committed.
+/private/
+
+node_modules/
+.next/
+*.tsbuildinfo
+.DS_Store
+.env
+.env.*
+!.env.example

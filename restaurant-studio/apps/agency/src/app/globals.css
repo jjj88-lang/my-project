@@ -1,0 +1,813 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens.
+ *
+ * The colors are also listed in src/lib/design/palette.ts together with every text and
+ * background pair the site uses. `npm test` fails if the two files disagree or if a pair
+ * drops below WCAG AA, so change a color in both places.
+ */
+@theme {
+  /* Only these colors exist: the default Tailwind palette is switched off on purpose. */
+  --color-*: initial;
+
+  --color-paper: #f6f0e4;
+  --color-paper-deep: #ece3d0;
+  --color-card: #fcf8ef;
+  --color-ink: #1b1814;
+  --color-ink-soft: #58544e;
+  --color-ink-faint: #67625b;
+  --color-accent: #b5350f;
+  --color-accent-deep: #96290a;
+  --color-band: #17231c;
+  --color-band-raised: #27312a;
+  --color-on-band: #f6f0e4;
+  --color-on-band-soft: #b8b7ac;
+  --color-accent-on-band: #f2946b;
+  --color-field: #757068;
+  --color-danger: #9b1c1c;
+  --color-success: #1f5c43;
+
+  /* Hairlines: ink at 15%. Decorative, so they are not part of the contrast pairs. */
+  --color-rule: color-mix(in srgb, #1b1814 15%, transparent);
+  --color-rule-strong: color-mix(in srgb, #1b1814 32%, transparent);
+  --color-rule-on-band: color-mix(in srgb, #f6f0e4 20%, transparent);
+
+  --ease-out-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+@theme inline {
+  --font-display: var(--ff-display), "Iowan Old Style", "Palatino Linotype", Palatino, Georgia, serif;
+  --font-sans: var(--ff-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: var(--ff-mono), ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+}
+
+:root {
+  --header-h: 4.25rem;
+  --gutter: clamp(1.25rem, 4.5vw, 3rem);
+  /* A fine paper grain, drawn once as a small tile. Purely decorative. */
+  --grain: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='240' height='240'%3E%3Cfilter id='n' x='0' y='0' width='100%25' height='100%25'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0.11  0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0.055 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --header-h: 4.75rem;
+  }
+}
+
+/* Element defaults ------------------------------------------------------------ */
+
+@layer base {
+  html {
+    background-color: var(--color-paper);
+    color: var(--color-ink);
+    scroll-behavior: smooth;
+    scroll-padding-top: calc(var(--header-h) + 1.5rem);
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-paper);
+    background-image: var(--grain);
+    font-family: var(--font-sans);
+    font-size: 1.0625rem;
+    line-height: 1.65;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-accent) 24%, transparent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+    border-radius: 2px;
+  }
+
+  /* On the dark band the focus ring switches to the lighter accent so it stays visible. */
+  .on-band :focus-visible {
+    outline-color: var(--color-accent-on-band);
+  }
+
+  .on-accent :focus-visible {
+    outline-color: var(--color-card);
+  }
+
+  dialog {
+    color: inherit;
+  }
+
+  /* Lock page scroll behind the open mobile menu. */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  summary {
+    cursor: pointer;
+  }
+
+  summary::-webkit-details-marker {
+    display: none;
+  }
+}
+
+/* Components ------------------------------------------------------------------ */
+
+@layer components {
+  /* Page container with the site gutter. */
+  .shell {
+    width: 100%;
+    max-width: 82rem;
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+
+  /* Headlines: Fraunces, large and tight. */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 420;
+    font-optical-sizing: auto;
+    font-variation-settings: "SOFT" 30;
+    line-height: 1.02;
+    letter-spacing: -0.022em;
+    text-wrap: balance;
+  }
+
+  .display em {
+    font-style: italic;
+    font-weight: 380;
+    color: var(--color-accent);
+  }
+
+  .on-band .display em {
+    color: var(--color-accent-on-band);
+  }
+
+  .on-accent .display em {
+    color: inherit;
+  }
+
+  .display-xl {
+    font-size: clamp(2.85rem, 1.6rem + 6.2vw, 6.75rem);
+    line-height: 0.97;
+    letter-spacing: -0.03em;
+  }
+
+  .display-lg {
+    font-size: clamp(2.3rem, 1.5rem + 3.6vw, 4.5rem);
+  }
+
+  .display-md {
+    font-size: clamp(1.9rem, 1.45rem + 1.9vw, 3rem);
+    line-height: 1.06;
+  }
+
+  .display-sm {
+    font-size: clamp(1.4rem, 1.25rem + 0.6vw, 1.75rem);
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+  }
+
+  /* Small monospace label above a heading. */
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.74rem;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--color-accent);
+  }
+
+  .on-band .eyebrow {
+    color: var(--color-accent-on-band);
+  }
+
+  .on-accent .eyebrow {
+    color: var(--color-card);
+  }
+
+  .mono-note {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    line-height: 1.6;
+    letter-spacing: 0.01em;
+  }
+
+  .lead {
+    font-size: clamp(1.14rem, 1.05rem + 0.4vw, 1.32rem);
+    line-height: 1.55;
+  }
+
+  .nums {
+    font-variant-numeric: lining-nums tabular-nums;
+  }
+
+  /* Buttons ------------------------------------------------------------------- */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 3.25rem;
+    padding: 0.8rem 1.5rem;
+    border: 1.5px solid transparent;
+    border-radius: 999px;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+    text-align: center;
+    transition:
+      background-color 0.2s var(--ease-out-soft),
+      color 0.2s var(--ease-out-soft),
+      border-color 0.2s var(--ease-out-soft),
+      transform 0.2s var(--ease-out-soft);
+  }
+
+  .btn:active {
+    transform: translateY(1px);
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-card);
+  }
+
+  .btn-primary:hover {
+    background: var(--color-accent-deep);
+  }
+
+  .btn-ghost {
+    border-color: var(--color-ink);
+    color: var(--color-ink);
+  }
+
+  .btn-ghost:hover {
+    background: var(--color-ink);
+    color: var(--color-paper);
+  }
+
+  .btn-on-band {
+    background: var(--color-accent-on-band);
+    color: var(--color-band);
+  }
+
+  .btn-on-band:hover {
+    background: var(--color-on-band);
+  }
+
+  .btn-ghost-on-band {
+    border-color: var(--color-on-band);
+    color: var(--color-on-band);
+  }
+
+  .btn-ghost-on-band:hover {
+    background: var(--color-on-band);
+    color: var(--color-band);
+  }
+
+  .btn-on-accent {
+    background: var(--color-card);
+    color: var(--color-ink);
+  }
+
+  .btn-on-accent:hover {
+    background: var(--color-ink);
+    color: var(--color-card);
+  }
+
+  .btn-ghost-on-accent {
+    border-color: var(--color-card);
+    color: var(--color-card);
+  }
+
+  .btn-ghost-on-accent:hover {
+    background: var(--color-card);
+    color: var(--color-accent-deep);
+  }
+
+  .btn-sm {
+    min-height: 2.75rem;
+    padding: 0.55rem 1.15rem;
+    font-size: 0.94rem;
+  }
+
+  .btn:disabled,
+  .btn[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .btn .btn-arrow {
+    transition: transform 0.2s var(--ease-out-soft);
+  }
+
+  .btn:hover .btn-arrow {
+    transform: translateX(3px);
+  }
+
+  /* Text links ---------------------------------------------------------------- */
+
+  .link {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+    transition: text-decoration-color 0.2s ease;
+  }
+
+  .link:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .on-band .link {
+    color: var(--color-accent-on-band);
+  }
+
+  /* A standalone link with an arrow, tall enough to tap. */
+  .link-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 2.75rem;
+    font-weight: 600;
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.3em;
+  }
+
+  .link-arrow:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  .link-arrow svg {
+    transition: transform 0.2s var(--ease-out-soft);
+  }
+
+  .link-arrow:hover svg {
+    transform: translateX(3px);
+  }
+
+  .on-band .link-arrow {
+    color: var(--color-accent-on-band);
+  }
+
+  /* Menu typography: name, dotted leader, price. ---------------------------------- */
+
+  .leader {
+    flex: 1 1 1.5rem;
+    min-width: 1.5rem;
+    border-bottom: 2px dotted var(--color-rule-strong);
+    transform: translateY(-0.38em);
+  }
+
+  .on-band .leader {
+    border-bottom-color: var(--color-rule-on-band);
+  }
+
+  /* The menu card: a framed sheet with an inner hairline, like a printed menu. */
+  .menu-card {
+    position: relative;
+    background: var(--color-card);
+    border: 1px solid var(--color-rule-strong);
+    box-shadow:
+      0 1px 0 var(--color-rule),
+      0 24px 48px -28px color-mix(in srgb, var(--color-ink) 35%, transparent);
+  }
+
+  .menu-card::before {
+    content: "";
+    position: absolute;
+    inset: 0.45rem;
+    border: 1px solid var(--color-rule);
+    pointer-events: none;
+  }
+
+  /* Order ticket: perforated along the top, torn along the bottom. -------------------- */
+
+  .ticket-wrap {
+    filter: drop-shadow(0 1px 0 color-mix(in srgb, var(--color-ink) 16%, transparent))
+      drop-shadow(0 14px 16px color-mix(in srgb, var(--color-ink) 10%, transparent));
+  }
+
+  .ticket {
+    --tooth: 14px;
+    --hole: 3.5px;
+    background: var(--color-card);
+    padding-bottom: calc(var(--tooth) / 2);
+    /*
+     * Both layers repeat sideways only. Repeating downwards too lets a sliver of the next tile
+     * show as a hairline under the torn edge whenever the ticket's height is a fraction of a pixel.
+     */
+    -webkit-mask:
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x,
+      radial-gradient(circle at 50% 0, #0000 var(--hole), #000 calc(var(--hole) + 0.5px)) 50% 0 / calc(var(--hole) * 4.5)
+        100% repeat-x;
+    -webkit-mask-composite: source-in;
+    mask:
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x,
+      radial-gradient(circle at 50% 0, #0000 var(--hole), #000 calc(var(--hole) + 0.5px)) 50% 0 / calc(var(--hole) * 4.5)
+        100% repeat-x;
+    mask-composite: intersect;
+  }
+
+  /* Guest check: a narrow receipt with a torn bottom edge. */
+  .check {
+    --tooth: 12px;
+    background: var(--color-card);
+    padding-bottom: calc(var(--tooth) / 2);
+    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100%
+      repeat-x;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x;
+  }
+
+  .dash-rule {
+    border: 0;
+    border-top: 1.5px dashed var(--color-rule-strong);
+  }
+
+  /* Device frames, drawn in CSS. ---------------------------------------------------- */
+
+  .browser {
+    overflow: hidden;
+    border: 1px solid var(--color-rule-strong);
+    border-radius: 0.9rem;
+    background: var(--color-card);
+    box-shadow:
+      0 1px 0 var(--color-rule),
+      0 34px 60px -30px color-mix(in srgb, var(--color-ink) 45%, transparent);
+  }
+
+  .browser-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.6rem 0.85rem;
+    border-bottom: 1px solid var(--color-rule);
+    background: var(--color-paper-deep);
+  }
+
+  .browser-dots {
+    display: flex;
+    gap: 0.35rem;
+  }
+
+  .browser-dots span {
+    width: 0.6rem;
+    height: 0.6rem;
+    border-radius: 999px;
+    background: var(--color-rule-strong);
+  }
+
+  .browser-address {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    padding: 0.2rem 0.75rem;
+    border-radius: 999px;
+    background: var(--color-card);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    letter-spacing: 0.02em;
+    color: var(--color-ink-soft);
+    text-align: center;
+  }
+
+  .phone {
+    position: relative;
+    padding: 1.3rem 0.45rem 0.45rem;
+    border-radius: 2rem;
+    background: var(--color-ink);
+    box-shadow:
+      inset 0 0 0 1.5px color-mix(in srgb, var(--color-paper) 22%, transparent),
+      0 30px 50px -24px color-mix(in srgb, var(--color-ink) 60%, transparent);
+  }
+
+  .phone-screen {
+    position: relative;
+    overflow: hidden;
+    border-radius: 0.4rem 0.4rem 1.6rem 1.6rem;
+    background: var(--color-ink);
+  }
+
+  /* The speaker slot, kept in the bezel so it never covers the screenshot. */
+  .phone::after {
+    content: "";
+    position: absolute;
+    top: 0.5rem;
+    left: 50%;
+    width: 18%;
+    height: 0.3rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-paper) 30%, var(--color-ink));
+    transform: translateX(-50%);
+    pointer-events: none;
+  }
+
+  /* Forms -------------------------------------------------------------------------- */
+
+  .field-label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-size: 0.96rem;
+    font-weight: 600;
+    color: var(--color-ink);
+  }
+
+  .field-input {
+    display: block;
+    width: 100%;
+    min-height: 3.1rem;
+    padding: 0.7rem 0.9rem;
+    border: 1.5px solid var(--color-field);
+    border-radius: 0.5rem;
+    background: var(--color-card);
+    color: var(--color-ink);
+    font: inherit;
+    font-size: 1rem; /* 16px keeps iOS from zooming in on focus */
+    line-height: 1.4;
+    transition: border-color 0.2s ease;
+  }
+
+  .field-input::placeholder {
+    color: var(--color-ink-faint);
+    opacity: 1;
+  }
+
+  .field-input:hover {
+    border-color: var(--color-ink);
+  }
+
+  .field-input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+    border-color: var(--color-accent);
+  }
+
+  .field-input[aria-invalid="true"] {
+    border-color: var(--color-danger);
+    border-width: 2px;
+  }
+
+  textarea.field-input {
+    min-height: 8.5rem;
+    resize: vertical;
+  }
+
+  select.field-input {
+    appearance: none;
+    padding-right: 2.6rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8' fill='none' stroke='%231b1814' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M1 1.5l5 5 5-5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+  }
+
+  .field-help {
+    margin-top: 0.4rem;
+    font-size: 0.9rem;
+    line-height: 1.45;
+    color: var(--color-ink-soft);
+  }
+
+  .field-error {
+    margin-top: 0.4rem;
+    font-size: 0.92rem;
+    font-weight: 600;
+    line-height: 1.45;
+    color: var(--color-danger);
+  }
+
+  /* Radio buttons drawn as pills: the whole pill is the tap target. */
+  .choice {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    min-height: 3.1rem;
+    padding: 0.55rem 1rem 0.55rem 0.85rem;
+    border: 1.5px solid var(--color-field);
+    border-radius: 999px;
+    background: var(--color-card);
+    font-size: 1rem;
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      background-color 0.2s ease;
+  }
+
+  .choice:hover {
+    border-color: var(--color-ink);
+  }
+
+  .choice input {
+    appearance: none;
+    flex: none;
+    width: 1.15rem;
+    height: 1.15rem;
+    margin: 0;
+    border: 1.5px solid var(--color-field);
+    border-radius: 999px;
+    background: var(--color-card);
+  }
+
+  .choice input:checked {
+    border-color: var(--color-accent);
+    background: radial-gradient(circle, var(--color-accent) 0 42%, var(--color-card) 46%);
+  }
+
+  .choice:has(input:checked) {
+    border-color: var(--color-accent);
+  }
+
+  fieldset[aria-invalid="true"] .choice {
+    border-color: var(--color-danger);
+  }
+
+  .choice:has(input:focus-visible) {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  .choice input:focus-visible {
+    outline: none;
+  }
+
+  /*
+   * Honeypot: kept out of sight and out of the accessibility tree without display:none,
+   * which some form-filling scripts check for.
+   */
+  .hp-field {
+    position: absolute !important;
+    left: -9999px !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+  }
+
+  /* Long-form pages (privacy, terms). ------------------------------------------------ */
+
+  .prose-doc h2 {
+    margin-top: 2.75rem;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 450;
+    line-height: 1.15;
+    letter-spacing: -0.012em;
+  }
+
+  .prose-doc h2:first-child {
+    margin-top: 0;
+  }
+
+  .prose-doc p,
+  .prose-doc ul {
+    margin-top: 0.9rem;
+  }
+
+  .prose-doc ul {
+    padding-left: 1.2rem;
+    list-style: disc;
+  }
+
+  .prose-doc li + li {
+    margin-top: 0.4rem;
+  }
+
+  .prose-doc li::marker {
+    color: var(--color-accent);
+  }
+
+  .prose-doc a {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.22em;
+  }
+
+  /* Skip link ------------------------------------------------------------------------ */
+
+  .skip-link {
+    position: absolute;
+    left: 1rem;
+    top: -5rem;
+    z-index: 100;
+    padding: 0.8rem 1.1rem;
+    border-radius: 0.5rem;
+    background: var(--color-ink);
+    color: var(--color-paper);
+    font-weight: 600;
+    transition: top 0.15s ease;
+  }
+
+  .skip-link:focus {
+    top: 1rem;
+  }
+
+  /* FAQ disclosure: a plus that turns into a minus. ----------------------------------- */
+
+  .faq-mark {
+    position: relative;
+    flex: none;
+    width: 1.1rem;
+    height: 1.1rem;
+    margin-top: 0.4rem;
+  }
+
+  .faq-mark::before,
+  .faq-mark::after {
+    content: "";
+    position: absolute;
+    inset: 50% 0 auto 0;
+    height: 1.5px;
+    background: var(--color-accent);
+    transform: translateY(-50%);
+    transition: transform 0.25s var(--ease-out-soft);
+  }
+
+  .faq-mark::after {
+    transform: translateY(-50%) rotate(90deg);
+  }
+
+  details[open] > summary .faq-mark::after {
+    transform: translateY(-50%) rotate(0deg);
+  }
+}
+
+/* Motion ------------------------------------------------------------------------------ */
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    translate: 0 1.1rem;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@layer components {
+  @media (prefers-reduced-motion: no-preference) {
+    /* First paint of the hero: a short, staggered rise. */
+    .enter {
+      animation: rise-in 0.7s var(--ease-out-soft) both;
+      animation-delay: calc(var(--i, 0) * 90ms + 60ms);
+    }
+
+    /*
+     * Scroll reveal with no JavaScript. Browsers without scroll-driven animations skip this
+     * block entirely and simply show the content.
+     */
+    @supports (animation-timeline: view()) {
+      .reveal {
+        animation: rise-in linear both;
+        animation-timeline: view();
+        animation-range: entry 0% entry 32%;
+      }
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Print: paper goods should print like paper. ----------------------------------------------- */
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .reveal,
+  .enter {
+    animation: none !important;
+  }
+}

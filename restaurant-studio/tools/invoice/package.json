@@ -1,0 +1,12 @@
+{
+  "name": "restaurant-studio-invoice",
+  "private": true,
+  "type": "module",
+  "description": "Single-file invoice and receipt maker. Prices are embedded from config/pricing.json.",
+  "scripts": {
+    "build": "node build.mjs",
+    "check": "node build.mjs --check",
+    "test": "node --test test/presets.test.mjs",
+    "test:browser": "node test/browser-check.cjs"
+  }
+}

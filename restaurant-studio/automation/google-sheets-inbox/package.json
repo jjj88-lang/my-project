@@ -1,0 +1,13 @@
+{
+  "name": "google-sheets-inbox",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Google Apps Script backend for website form inquiries, with tests that run it in a simulated Apps Script environment.",
+  "type": "module",
+  "scripts": {
+    "test": "node --import tsx --test --test-reporter=spec test/*.test.mjs"
+  },
+  "devDependencies": {
+    "tsx": "4.23.15"
+  }
+}

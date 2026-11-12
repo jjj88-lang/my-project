@@ -1,0 +1,75 @@
+{
+  "$schema": "../../schema/site.schema.json",
+
+  "plan": "starter",
+  "sample": false,
+
+  "name": "Restaurant Name",
+  "descriptor": "Cuisine & Specialty",
+  "tagline": "One short line that says what makes this place worth a visit.",
+  "description": "One or two sentences for Google and link previews: what the restaurant serves, where it is, and what it is known for.",
+  "cuisines": ["Cuisine"],
+  "priceRange": "$$",
+  "url": "https://example.com",
+  "timezone": "America/Chicago",
+
+  "logo": {
+    "text": "Restaurant Name"
+  },
+
+  "theme": {
+    "colors": {
+      "background": "#faf6ef",
+      "text": "#1c1917",
+      "accent": "#9a3412"
+    },
+    "fonts": "classic",
+    "corners": "soft",
+    "hero": "split"
+  },
+
+  "contact": {
+    "phone": "(555) 555-0100",
+    "address": {
+      "street": "123 Main Street",
+      "city": "City",
+      "region": "ST",
+      "postalCode": "00000",
+      "country": "US"
+    }
+  },
+
+  "hours": {
+    "regular": [
+      { "days": ["tue", "wed", "thu", "fri", "sat", "sun"], "open": "11:00", "close": "21:00" }
+    ],
+    "notes": [],
+    "exceptions": []
+  },
+
+  "links": {
+    "social": {}
+  },
+
+  "hero": {
+    "eyebrow": "Cuisine · City",
+    "headline": "A short, confident headline.",
+    "subhead": "One sentence about the food and the feeling of the place.",
+    "media": { "art": "bowl" }
+  },
+
+  "intro": {
+    "eyebrow": "Welcome",
+    "heading": "Say what the restaurant is, in the owner's words.",
+    "body": [
+      "Two or three sentences. Who cooks, what they cook, and why people come back."
+    ],
+    "highlights": []
+  },
+
+  "catering": {
+    "enabled": false
+  },
+
+  "faq": []
+}

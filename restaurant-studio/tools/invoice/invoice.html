@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Invoice and receipt maker</title>
+<!--
+  Invoice and receipt maker. One self-contained file: no network, no libraries.
+  Open it from the file system, fill in the form on the left, then use Print (Save as PDF).
+  Prices are embedded from config/pricing.json by build.mjs; do not edit the presets block by hand.
+-->
+<style>
+  :root {
+    --ink: #1d1d1b;
+    --muted: #66635c;
+    --line: #dcd8cf;
+    --paper: #ffffff;
+    --bg: #f3f1ec;
+    --accent: #8a3b12;
+    --missing: #a15c00;
+    --missing-bg: #fff4e0;
+  }
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font: 15px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  .toolbar {
+    display: flex; flex-wrap: wrap; gap: 12px; align-items: center; justify-content: space-between;
+    padding: 12px 16px; background: var(--paper); border-bottom: 1px solid var(--line);
+  }
+  .toolbar h1 { font-size: 17px; margin: 0; }
+  .toolbar p { margin: 0; color: var(--muted); font-size: 13px; }
+  button {
+    font: inherit; cursor: pointer; border: 1px solid var(--line); background: var(--paper);
+    color: var(--ink); border-radius: 6px; padding: 6px 12px;
+  }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent); outline-offset: 1px;
+  }
+  .layout {
+    display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 20px;
+    padding: 20px 16px; max-width: 1280px; margin: 0 auto;
+  }
+  @media (max-width: 880px) { .layout { grid-template-columns: 1fr; } }
+
+  /* Editor */
+  .editor fieldset { border: 1px solid var(--line); border-radius: 8px; background: var(--paper); margin: 0 0 14px; padding: 10px 12px 12px; min-width: 0; }
+  .editor legend { font-weight: 600; padding: 0 4px; }
+  .editor label { display: block; font-size: 13px; color: var(--muted); margin-top: 8px; }
+  .editor input[type=text], .editor input[type=email], .editor input[type=date], .editor input[type=url],
+  .editor input[type=number], .editor select, .editor textarea {
+    display: block; width: 100%; font: inherit; color: var(--ink); margin-top: 3px;
+    border: 1px solid var(--line); border-radius: 6px; padding: 6px 8px; background: #fff;
+  }
+  .editor textarea { min-height: 70px; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+  .presets button { font-size: 13px; padding: 4px 8px; }
+  .line { border-top: 1px solid var(--line); padding: 8px 0 4px; }
+  .line:first-child { border-top: 0; }
+  .line .grid { display: grid; grid-template-columns: 70px 1fr auto; gap: 8px; align-items: end; }
+  .line .check { display: flex; gap: 6px; align-items: center; margin-top: 6px; color: var(--muted); font-size: 13px; }
+  .line .check input { margin: 0; }
+  .hint { color: var(--muted); font-size: 13px; margin: 6px 0 0; }
+  .modes { display: flex; flex-wrap: wrap; gap: 4px 14px; margin-top: 4px; }
+  .modes label { display: flex; gap: 6px; align-items: center; color: var(--ink); font-size: 14px; margin: 0; }
+
+  /* The sheet: what gets printed */
+  .sheet {
+    background: var(--paper); border-radius: 8px; box-shadow: 0 1px 4px rgba(0,0,0,.08);
+    padding: 40px 44px; align-self: start; min-width: 0; font-size: 14px;
+  }
+  @media (max-width: 600px) { .sheet { padding: 22px 16px; } }
+  .sheet-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 16px; border-bottom: 2px solid var(--ink); padding-bottom: 14px; }
+  .studio-name { font-size: 22px; font-weight: 700; margin: 0 0 2px; }
+  .small { color: var(--muted); font-size: 13px; margin: 0; }
+  .doc-title { text-align: right; }
+  .doc-title h2 { margin: 0 0 4px; font-size: 22px; letter-spacing: .08em; text-transform: uppercase; color: var(--accent); }
+  .meta { border-collapse: collapse; margin-left: auto; font-size: 13px; }
+  .meta th { text-align: right; font-weight: 400; color: var(--muted); padding: 1px 10px 1px 0; }
+  .meta td { text-align: right; padding: 1px 0; }
+  .billto { margin: 18px 0 16px; }
+  .label { text-transform: uppercase; letter-spacing: .06em; font-size: 11px; color: var(--muted); margin: 0 0 3px; font-weight: 600; }
+  .billto p { margin: 0; }
+  table.items { width: 100%; border-collapse: collapse; }
+  table.items th { text-align: left; font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); border-bottom: 1px solid var(--ink); padding: 6px 4px; }
+  table.items td { border-bottom: 1px solid var(--line); padding: 7px 4px; vertical-align: top; }
+  table.items .num { text-align: right; white-space: nowrap; }
+  table.items .empty { color: var(--muted); font-style: italic; }
+  .totals { width: 100%; max-width: 330px; margin: 12px 0 0 auto; border-collapse: collapse; }
+  .totals th { text-align: left; font-weight: 400; padding: 3px 4px; }
+  .totals td { text-align: right; padding: 3px 4px; white-space: nowrap; }
+  .totals tr.due th, .totals tr.due td { border-top: 2px solid var(--ink); font-weight: 700; font-size: 16px; padding-top: 8px; }
+  .totals tr.current th, .totals tr.current td { font-weight: 600; }
+  .monthly-note { margin: 10px 0 0 auto; max-width: 440px; font-size: 13px; color: var(--muted); text-align: right; }
+  .paybox { margin: 18px 0 0; border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; }
+  .paybox p { margin: 0; }
+  .paybox a { color: var(--accent); word-break: break-all; }
+  .paid-stamp { display: inline-block; border: 2px solid var(--accent); color: var(--accent); border-radius: 4px; padding: 2px 10px; font-weight: 700; letter-spacing: .08em; }
+  .section { margin-top: 16px; }
+  .section p { margin: 0; white-space: pre-wrap; }
+  .terms p { font-size: 12.5px; color: var(--muted); }
+  .missing { color: var(--missing); background: var(--missing-bg); border-radius: 3px; padding: 0 3px; }
+
+  @page { size: letter; margin: 0.5in; }
+  @media print {
+    body { background: #fff; font-size: 13px; }
+    .no-print { display: none !important; }
+    .layout { display: block; padding: 0; max-width: none; }
+    .sheet { box-shadow: none; border-radius: 0; padding: 0; font-size: 13px; }
+    .missing { background: none; }
+    .sheet-head, table.items tr, .totals, .paybox, .section { break-inside: avoid; }
+  }
+</style>
+</head>
+<body>
+
+<header class="toolbar no-print">
+  <div>
+    <h1>Invoice and receipt maker</h1>
+    <p>Fill in the form. The page on the right is what prints. Nothing leaves this computer.</p>
+  </div>
+  <button type="button" class="primary" id="print">Print or save as PDF</button>
+</header>
+
+<main class="layout">
+  <form class="editor no-print" id="editor" autocomplete="off" onsubmit="return false">
+    <fieldset>
+      <legend>Document</legend>
+      <div class="two">
+        <label>Type
+          <select id="docType">
+            <option value="invoice">Invoice</option>
+            <option value="receipt">Receipt</option>
+          </select>
+        </label>
+        <label>Number <input type="text" id="docNumber"></label>
+        <label>Date <input type="date" id="docDate"></label>
+        <label>Due date (optional) <input type="date" id="dueDate"></label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Studio</legend>
+      <label>Name <input type="text" id="studioName"></label>
+      <div class="two">
+        <label>Email <input type="email" id="studioEmail"></label>
+        <label>Phone <input type="text" id="studioPhone"></label>
+      </div>
+      <label>Website <input type="text" id="studioUrl"></label>
+      <label>Mailing address <input type="text" id="studioAddress"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Client</legend>
+      <label>Restaurant (business name) <input type="text" id="clientBusiness"></label>
+      <label>Contact person <input type="text" id="clientContact"></label>
+      <label>Email <input type="email" id="clientEmail"></label>
+      <label>Address <input type="text" id="clientAddress"></label>
+    </fieldset>
+
+    <fieldset>
+      <legend>Line items</legend>
+      <div class="presets" id="presetButtons" aria-label="Add a standard item"></div>
+      <div id="lines"></div>
+      <button type="button" id="addFree">Add a blank line</button>
+      <p class="hint">Prices are whole-project prices from the price list. Monthly items are shown on the page but never added to the amount due.</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Amount due</legend>
+      <div class="modes" role="radiogroup" aria-label="What this document is for">
+        <label><input type="radio" name="mode" value="deposit" checked> <span id="modeDepositLabel">Deposit</span></label>
+        <label><input type="radio" name="mode" value="balance"> <span id="modeBalanceLabel">Balance</span></label>
+        <label><input type="radio" name="mode" value="full"> Full amount</label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Payment</legend>
+      <label>Stripe payment link (invoice) <input type="url" id="payLink" placeholder="https://buy.stripe.com/..."></label>
+      <div class="two">
+        <label>Paid on (receipt) <input type="date" id="paidDate"></label>
+        <label>Paid by (receipt)
+          <select id="paidMethod">
+            <option>Card, through Stripe</option>
+            <option>Check</option>
+            <option>Bank transfer</option>
+          </select>
+        </label>
+      </div>
+    </fieldset>
+
+    <fieldset>
+      <legend>Notes and terms</legend>
+      <label>Notes <textarea id="notes" placeholder="For example: Deposit for the Starter Website. First draft due within 5 business days of receiving your materials."></textarea></label>
+      <label>Terms <textarea id="terms" rows="5"></textarea></label>
+      <button type="button" id="resetTerms" style="margin-top:6px">Reset terms to the standard text</button>
+    </fieldset>
+  </form>
+
+  <article class="sheet" id="sheet" aria-label="Document preview">
+    <div class="sheet-head">
+      <div>
+        <p class="studio-name" id="pStudioName"></p>
+        <p class="small" id="pStudioContact"></p>
+        <p class="small" id="pStudioAddress"></p>
+      </div>
+      <div class="doc-title">
+        <h2 id="pDocTitle">Invoice</h2>
+        <table class="meta">
+          <tr><th>Number</th><td id="pNumber"></td></tr>
+          <tr><th>Date</th><td id="pDate"></td></tr>
+          <tr id="pDueRow"><th>Due</th><td id="pDue"></td></tr>
+        </table>
+      </div>
+    </div>
+
+    <div class="billto">
+      <p class="label" id="pBillLabel">Bill to</p>
+      <p><strong id="pClientBusiness"></strong></p>
+      <p id="pClientContact"></p>
+      <p class="small" id="pClientAddress"></p>
+    </div>
+
+    <table class="items">
+      <thead><tr><th>Description</th><th class="num">Qty</th><th class="num">Unit price</th><th class="num">Amount</th></tr></thead>
+      <tbody id="pLines"></tbody>
+    </table>
+
+    <table class="totals">
+      <tr id="rowTotal"><th>Project total</th><td id="total"></td></tr>
+      <tr id="rowDeposit"><th id="depositLabel">Deposit</th><td id="deposit"></td></tr>
+      <tr id="rowBalance"><th id="balanceLabel">Balance</th><td id="balance"></td></tr>
+      <tr class="due"><th id="dueLabel">Amount due</th><td id="amount-due"></td></tr>
+    </table>
+    <p class="monthly-note" id="monthly-note" hidden></p>
+
+    <div class="paybox" id="pPayBox"></div>
+
+    <div class="section" id="pNotesBox"><p class="label">Notes</p><p id="pNotes"></p></div>
+    <div class="section terms"><p class="label">Terms</p><p id="pTerms"></p></div>
+  </article>
+</main>
+
+<script id="presets" type="application/json">
+{
+  "generatedFrom": "config/pricing.json and config/studio.json",
+  "currency": "USD",
+  "depositPercent": 50,
+  "hourlyRate": 60,
+  "revisionRounds": 2,
+  "bugFixWindowDays": 14,
+  "cancelNoticeDays": 30,
+  "studio": {
+    "name": "Sidework Studio",
+    "email": "",
+    "phone": "",
+    "url": "",
+    "mailingAddress": ""
+  },
+  "items": [
+    {
+      "key": "starter",
+      "name": "Starter Website",
+      "unitCents": 69900,
+      "recurring": false
+    },
+    {
+      "key": "premium",
+      "name": "Premium Website",
+      "unitCents": 99900,
+      "recurring": false
+    },
+    {
+      "key": "catering",
+      "name": "Catering Inquiry Automation",
+      "unitCents": 34900,
+      "recurring": false
+    },
+    {
+      "key": "maintenance",
+      "name": "Monthly Website Maintenance",
+      "unitCents": 5900,
+      "recurring": true
+    },
+    {
+      "key": "hourly",
+      "name": "Work outside the agreed scope (per hour)",
+      "unitCents": 6000,
+      "recurring": false
+    }
+  ]
+}
+</script>
+
+<script>
+(function () {
+  "use strict";
+  var P = JSON.parse(document.getElementById("presets").textContent);
+  var $ = function (id) { return document.getElementById(id); };
+  var pct = Number(P.depositPercent);
+  var lineSeq = 0;
+
+  // ---------- money: integer cents everywhere ----------
+  function toCents(text) {
+    var n = parseFloat(String(text).replace(/[$,\s]/g, ""));
+    return isFinite(n) ? Math.round(n * 100) : 0;
+  }
+  function money(cents) {
+    var sign = cents < 0 ? "-" : "";
+    var abs = Math.abs(cents);
+    var dollars = Math.floor(abs / 100).toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    var c = String(abs % 100);
+    return sign + "$" + dollars + "." + (c.length < 2 ? "0" + c : c);
+  }
+  function plainDollars(cents) { return (cents / 100).toFixed(2); }
+  function qtyText(q) { return Number.isInteger(q) ? String(q) : String(Math.round(q * 100) / 100); }
+
+  // ---------- dates ----------
+  function today() {
+    var d = new Date();
+    var m = String(d.getMonth() + 1), day = String(d.getDate());
+    return d.getFullYear() + "-" + (m.length < 2 ? "0" + m : m) + "-" + (day.length < 2 ? "0" + day : day);
+  }
+  var MONTHS = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+  function longDate(iso) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || "");
+    return m ? MONTHS[Number(m[2]) - 1] + " " + Number(m[3]) + ", " + m[1] : "";
+  }
+
+  // ---------- small DOM helpers ----------
+  function setText(node, value, placeholder) {
+    node.textContent = "";
+    if (value) { node.textContent = value; return; }
+    if (placeholder) {
+      var s = document.createElement("span");
+      s.className = "missing";
+      s.textContent = placeholder;
+      node.appendChild(s);
+    }
+  }
+  function el(tag, attrs, text) {
+    var n = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) { n.setAttribute(k, attrs[k]); });
+    if (text != null) n.textContent = text;
+    return n;
+  }
+  function val(id) { return $(id).value.trim(); }
+
+  // ---------- terms ----------
+  function standardTerms() {
+    return [
+      pct + "% deposit to start the work. The remaining " + (100 - pct) + "% is due when you approve the final preview, before launch.",
+      "Includes " + P.revisionRounds + " rounds of revisions and a " + P.bugFixWindowDays + "-day fix window after launch. Work outside the agreed scope is $" + P.hourlyRate + " per hour, only with your approval first.",
+      "Monthly maintenance, if chosen, is month to month and can be cancelled with " + P.cancelNoticeDays + " days' notice.",
+      "Card payments go through a secure Stripe page. We never ask for card numbers by email, text or phone.",
+      "Full terms are in the signed service agreement."
+    ].join("\n");
+  }
+
+  // ---------- line items ----------
+  function addLine(item) {
+    item = item || { name: "", unitCents: 0, recurring: false };
+    var id = "l" + (++lineSeq);
+    var wrap = el("div", { "class": "line", "data-line": id });
+    var desc = el("label", null, "Description");
+    var descIn = el("input", { type: "text", "class": "desc", "aria-label": "Description" });
+    descIn.value = item.name;
+    desc.appendChild(descIn);
+
+    var grid = el("div", { "class": "grid" });
+    var q = el("label", null, "Qty");
+    var qIn = el("input", { type: "number", "class": "qty", min: "0", step: "0.25", "aria-label": "Quantity" });
+    qIn.value = "1";
+    q.appendChild(qIn);
+    var p = el("label", null, "Unit price ($)");
+    var pIn = el("input", { type: "text", "class": "price", inputmode: "decimal", "aria-label": "Unit price in dollars" });
+    pIn.value = item.unitCents ? plainDollars(item.unitCents) : "";
+    p.appendChild(pIn);
+    var rm = el("button", { type: "button", "class": "remove", "aria-label": "Remove this line" }, "Remove");
+    rm.addEventListener("click", function () { wrap.remove(); render(); });
+    grid.appendChild(q); grid.appendChild(p); grid.appendChild(rm);
+
+    var chk = el("label", { "class": "check" });
+    var cIn = el("input", { type: "checkbox", "class": "monthly" });
+    cIn.checked = !!item.recurring;
+    chk.appendChild(cIn);
+    chk.appendChild(document.createTextNode("Monthly (billed by subscription, not part of the amount due)"));
+
+    wrap.appendChild(desc); wrap.appendChild(grid); wrap.appendChild(chk);
+    $("lines").appendChild(wrap);
+    render();
+    return wrap;
+  }
+
+  function readLines() {
+    var out = [];
+    document.querySelectorAll("#lines .line").forEach(function (w) {
+      var qty = parseFloat(w.querySelector(".qty").value);
+      if (!isFinite(qty) || qty < 0) qty = 0;
+      var unit = toCents(w.querySelector(".price").value);
+      out.push({
+        desc: w.querySelector(".desc").value.trim(),
+        qty: qty,
+        unitCents: unit,
+        cents: Math.round(qty * unit),
+        recurring: w.querySelector(".monthly").checked
+      });
+    });
+    return out;
+  }
+
+  /** Deposit per line, rounded to the cent, the same way each Stripe deposit price is set.
+      The balance is whatever is left, so deposit + balance always equals the total. */
+  function computeTotals(lines) {
+    var total = 0, deposit = 0, monthly = 0;
+    lines.forEach(function (l) {
+      if (l.recurring) { monthly += l.cents; return; }
+      total += l.cents;
+      deposit += Math.round(l.cents * pct / 100);
+    });
+    return { total: total, deposit: deposit, balance: total - deposit, monthly: monthly };
+  }
+
+  function mode() { return document.querySelector("input[name=mode]:checked").value; }
+
+  // ---------- render the sheet ----------
+  function render() {
+    var isReceipt = $("docType").value === "receipt";
+    var m = mode();
+
+    setText($("pStudioName"), val("studioName"), "[Studio name]");
+    var contact = [val("studioEmail"), val("studioPhone"), val("studioUrl")].filter(Boolean).join("  |  ");
+    setText($("pStudioContact"), contact, "[Studio email]");
+    setText($("pStudioAddress"), val("studioAddress"), "");
+
+    $("pDocTitle").textContent = isReceipt ? "Receipt" : "Invoice";
+    setText($("pNumber"), val("docNumber"), "[Number]");
+    setText($("pDate"), longDate(val("docDate")), "[Date]");
+    var due = longDate(val("dueDate"));
+    $("pDueRow").hidden = isReceipt || !due;
+    $("pDue").textContent = due;
+
+    $("pBillLabel").textContent = isReceipt ? "Received from" : "Bill to";
+    setText($("pClientBusiness"), val("clientBusiness"), "[Restaurant name]");
+    var cc = [val("clientContact"), val("clientEmail")].filter(Boolean).join(", ");
+    setText($("pClientContact"), cc, "");
+    setText($("pClientAddress"), val("clientAddress"), "");
+
+    var lines = readLines();
+    var body = $("pLines");
+    body.textContent = "";
+    if (!lines.length) {
+      var tr0 = el("tr");
+      tr0.appendChild(el("td", { colspan: "4", "class": "empty" }, "No items yet. Add a package from the form."));
+      body.appendChild(tr0);
+    }
+    lines.forEach(function (l) {
+      var tr = el("tr");
+      var d = el("td");
+      setText(d, l.desc, "[Description]");
+      tr.appendChild(d);
+      tr.appendChild(el("td", { "class": "num" }, qtyText(l.qty)));
+      tr.appendChild(el("td", { "class": "num" }, money(l.unitCents) + (l.recurring ? " / month" : "")));
+      tr.appendChild(el("td", { "class": "num" }, l.recurring ? money(l.cents) + " / month" : money(l.cents)));
+      body.appendChild(tr);
+    });
+
+    var t = computeTotals(lines);
+    $("total").textContent = money(t.total);
+    $("deposit").textContent = money(t.deposit);
+    $("balance").textContent = money(t.balance);
+    $("depositLabel").textContent = "Deposit (" + pct + "%)";
+    $("balanceLabel").textContent = "Balance (" + (100 - pct) + "%)";
+    $("modeDepositLabel").textContent = "Deposit (" + pct + "%)";
+    $("modeBalanceLabel").textContent = "Balance (" + (100 - pct) + "%)";
+
+    var dueCents = m === "deposit" ? t.deposit : m === "balance" ? t.balance : t.total;
+    var what = m === "deposit" ? "deposit" : m === "balance" ? "balance" : "full amount";
+    $("dueLabel").textContent = (isReceipt ? "Amount paid, " : "Amount due, ") + what;
+    $("amount-due").textContent = money(dueCents);
+    $("rowDeposit").className = m === "deposit" ? "current" : "";
+    $("rowBalance").className = m === "balance" ? "current" : "";
+    // The deposit and balance rows only add noise on a full-amount document.
+    $("rowDeposit").hidden = m === "full";
+    $("rowBalance").hidden = m === "full";
+
+    var note = $("monthly-note");
+    if (t.monthly > 0) {
+      note.hidden = false;
+      note.textContent = "Monthly items (" + money(t.monthly) + " a month) are billed separately by subscription from launch and are not included in the amount " + (isReceipt ? "paid." : "due.");
+    } else {
+      note.hidden = true;
+      note.textContent = "";
+    }
+
+    // Payment box
+    var box = $("pPayBox");
+    box.textContent = "";
+    if (isReceipt) {
+      var stamp = el("p");
+      stamp.appendChild(el("span", { "class": "paid-stamp" }, "Paid"));
+      box.appendChild(stamp);
+      var pd = longDate(val("paidDate"));
+      var line = el("p", { style: "margin-top:6px" });
+      line.appendChild(document.createTextNode(money(dueCents) + " received"));
+      if (pd) line.appendChild(document.createTextNode(" on " + pd));
+      line.appendChild(document.createTextNode(", " + $("paidMethod").value.charAt(0).toLowerCase() + $("paidMethod").value.slice(1) + ". Thank you."));
+      box.appendChild(line);
+    } else {
+      var link = val("payLink");
+      var p1 = el("p");
+      p1.appendChild(el("strong", null, "Pay online: "));
+      if (/^https:\/\/[^\s]+$/i.test(link)) {
+        var a = el("a", { href: link, id: "pPayLink" }, link);
+        p1.appendChild(a);
+      } else {
+        var miss = el("span", { "class": "missing" }, link ? "[This does not look like an https link]" : "[Paste the Stripe payment link]");
+        p1.appendChild(miss);
+      }
+      box.appendChild(p1);
+      box.appendChild(el("p", { "class": "small", style: "margin-top:4px" }, "The link opens a secure payment page from Stripe. To pay by check or bank transfer instead, reply to this invoice first."));
+    }
+
+    var notes = $("notes").value.trim();
+    $("pNotesBox").hidden = !notes;
+    $("pNotes").textContent = notes;
+    $("pTerms").textContent = $("terms").value.trim();
+  }
+
+  // ---------- wire up ----------
+  P.items.forEach(function (item) {
+    var b = el("button", { type: "button", "data-preset": item.key }, "+ " + item.name + " " + money(item.unitCents) + (item.recurring ? "/mo" : ""));
+    b.addEventListener("click", function () { addLine(item); });
+    $("presetButtons").appendChild(b);
+  });
+  $("addFree").addEventListener("click", function () { addLine(null).querySelector(".desc").focus(); });
+  $("resetTerms").addEventListener("click", function () { $("terms").value = standardTerms(); render(); });
+  $("print").addEventListener("click", function () { window.print(); });
+  $("editor").addEventListener("input", render);
+  $("editor").addEventListener("change", render);
+
+  $("studioName").value = P.studio.name || "";
+  $("studioEmail").value = P.studio.email || "";
+  $("studioPhone").value = P.studio.phone || "";
+  $("studioUrl").value = P.studio.url || "";
+  $("studioAddress").value = P.studio.mailingAddress || "";
+  $("docDate").value = today();
+  $("docNumber").value = today().slice(0, 4) + "-001";
+  $("terms").value = standardTerms();
+  render();
+
+  // Exposed for the automated check only.
+  window.__invoice = { computeTotals: computeTotals, money: money, toCents: toCents };
+})();
+</script>
+</body>
+</html>

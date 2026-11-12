@@ -1,0 +1,85 @@
+{
+  "_comment": "Single source of truth for prices and package terms. The agency site, the Stripe setup script, the invoice tool and the documents all read from this. After editing, run: node scripts/sync-shared.mjs",
+  "currency": "USD",
+  "depositPercent": 50,
+  "hourlyRate": 60,
+  "hourlyMinimumMinutes": 30,
+  "bugFixWindowDays": 14,
+  "packages": {
+    "starter": {
+      "name": "Starter Website",
+      "price": 699,
+      "summary": "A one-page site with everything a guest looks for: the menu, hours, location, and one-tap links to call, get directions, order or reserve.",
+      "firstDraftBusinessDays": 5,
+      "typicalLaunch": "about one to two weeks after we have your materials",
+      "revisionRounds": 2,
+      "includes": [
+        "One-page, mobile-first website built with your name, logo and colors",
+        "Your full menu as real text with prices, organized by section (never a PDF)",
+        "Hours, address, a tap-to-call number and a Get Directions link",
+        "Buttons that open the online ordering and reservation systems you already use",
+        "An 'Open now' indicator and holiday hours",
+        "Search-engine basics: page titles, descriptions, and restaurant details in the format Google reads",
+        "Connection to your own domain name and launch",
+        "Two rounds of revisions and a 14-day fix window after launch"
+      ]
+    },
+    "premium": {
+      "name": "Premium Website",
+      "price": 999,
+      "summary": "A multi-page site for restaurants with more to say: a dedicated menu page, photo gallery, your story, a catering page and a contact form.",
+      "firstDraftBusinessDays": 7,
+      "typicalLaunch": "about two weeks after we have your materials",
+      "revisionRounds": 2,
+      "includes": [
+        "Everything in Starter",
+        "Separate pages: Home, Menu, Gallery, Our Story, Catering and Contact",
+        "Menu page with jump-to-section navigation and dietary labels",
+        "Photo gallery with a full-screen viewer",
+        "Contact form with spam protection, delivered to your inbox",
+        "Announcement bar for specials and holiday hours",
+        "Frequently-asked-questions section",
+        "Two rounds of revisions and a 14-day fix window after launch"
+      ]
+    }
+  },
+  "addons": {
+    "catering": {
+      "name": "Catering Inquiry Automation",
+      "price": 349,
+      "summary": "A catering request form that records every inquiry in a spreadsheet you own, emails you the details at once, and sends the customer a note that the request arrived. It never confirms a booking, a price or a date for you.",
+      "includes": [
+        "Catering request form: date, headcount, type of service, budget and notes",
+        "Every request saved to a Google Sheet that belongs to you",
+        "An email to you with all the details the moment a request comes in",
+        "An automatic note to the customer saying the request arrived (it confirms nothing)",
+        "Setup in your own Google account, testing, and a 15-minute walkthrough"
+      ],
+      "requires": "Works with either website package. Needs a Google account that belongs to the restaurant."
+    }
+  },
+  "maintenance": {
+    "name": "Monthly Website Maintenance",
+    "pricePerMonth": 59,
+    "summary": "Hosting, updates and small changes handled for you, month to month.",
+    "includedEditMinutes": 60,
+    "responseBusinessDays": 2,
+    "outageResponseBusinessDays": 1,
+    "cancelNoticeDays": 30,
+    "includes": [
+      "Hosting on our managed account, with the security certificate (https)",
+      "Up to 60 minutes of small changes each month: menu items, prices, hours, photos, announcements",
+      "Software and security updates",
+      "Monitoring that the site and its forms are working",
+      "A reply within two business days (one business day if the site is down)",
+      "Month to month. Cancel any time with 30 days' notice, and we hand over your site files"
+    ]
+  },
+  "notIncluded": [
+    "The yearly fee for your domain name (about $12 to $20, paid by you to the registrar, in your name)",
+    "Professional photography or logo design (we work with what you have, and the site is designed to look finished without photos)",
+    "The online ordering or reservation system itself (we link to the one you use)",
+    "Paid advertising, social media management or ongoing SEO campaigns",
+    "Business email accounts"
+  ]
+}

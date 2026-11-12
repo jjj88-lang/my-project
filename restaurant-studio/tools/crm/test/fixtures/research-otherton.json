@@ -1,0 +1,38 @@
+{
+  "city": "Otherton, NY",
+  "researched_on": "2026-01-16",
+  "method_notes": "FIXTURE FOR TESTS. Every business in this file is made up.",
+  "qualified": [
+    {
+      "restaurant": "Otherton Sample Ramen",
+      "cuisine": "Korean and Japanese noodles",
+      "address": "77 Test Blvd, Otherton, NY 14000",
+      "phone": "",
+      "public_email": "",
+      "contact_form_url": "",
+      "website_url": "https://sample-ramen.example.com/",
+      "other_listings": ["https://listings.example.org/otherton-sample-ramen"],
+      "owner_name_public": "",
+      "owner_name_source": "",
+      "independent_evidence": "A single location.",
+      "pages_inspected": [],
+      "observations": [
+        {
+          "issue": "Hours conflict within its own site",
+          "evidence": "One page lists Tuesday as closed while the home page shows open every day.",
+          "confidence": "verified-by-search"
+        }
+      ],
+      "strengths": "A full text menu with prices and working online ordering.",
+      "suggested_improvement": "One page the restaurant controls with one correct set of hours.",
+      "proposed_package": "starter ($699 one-page site)",
+      "package_reason": "The core need is one accurate page.",
+      "fit_score": 3,
+      "fit_reason": "A specific inconsistency worth mentioning, but the fix is small.",
+      "best_contact_route": "phone",
+      "personal_opening": "I've worked in restaurants and now build simple websites for independent ones. While checking your hours I noticed that one page lists Tuesday as closed while the home page shows open every day. I wanted to mention it in case it is news to you, and I can show you exactly what I saw.",
+      "verify_before_outreach": "Open the site on a phone and compare the hours on each page. Ask staff what the real Tuesday hours are."
+    }
+  ],
+  "rejected": []
+}

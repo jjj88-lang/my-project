@@ -1,0 +1,205 @@
+{
+  "$schema": "../../schema/site.schema.json",
+
+  "plan": "premium",
+  "sample": true,
+
+  "name": "Hibana",
+  "descriptor": "Hibachi & Sushi",
+  "tagline": "Fire at the table. Precision at the bar.",
+  "description": "Hibana is a sample concept for a Japanese hibachi and sushi restaurant: teppanyaki dinners cooked tableside, a sushi bar cutting fish to order, and catering for any size party.",
+  "cuisines": ["Japanese", "Hibachi", "Sushi"],
+  "priceRange": "$$$",
+  "url": "https://hibana.example",
+  "timezone": "America/Chicago",
+
+  "logo": {
+    "text": "Hibana",
+    "mark": "flame"
+  },
+
+  "theme": {
+    "colors": {
+      "background": "#0e0c0a",
+      "text": "#f4ede1",
+      "accent": "#dd9a54",
+      "accentText": "#171008"
+    },
+    "fonts": "editorial",
+    "corners": "sharp",
+    "hero": "cinematic"
+  },
+
+  "contact": {
+    "phone": "(785) 555-0142",
+    "email": "hello@hibana.example",
+    "address": {
+      "street": "1200 Sample Street",
+      "city": "Topeka",
+      "region": "KS",
+      "postalCode": "66603",
+      "country": "US"
+    },
+    "neighborhood": "Downtown, one block from the river",
+    "parking": "Free lot behind the building, with street parking on both sides after 5 pm."
+  },
+
+  "hours": {
+    "regular": [
+      { "days": ["mon", "tue", "wed", "thu"], "open": "11:00", "close": "14:30" },
+      { "days": ["mon", "tue", "wed", "thu"], "open": "16:30", "close": "21:30" },
+      { "days": ["fri"], "open": "11:00", "close": "14:30" },
+      { "days": ["fri"], "open": "16:30", "close": "22:30" },
+      { "days": ["sat"], "open": "12:00", "close": "22:30" },
+      { "days": ["sun"], "open": "12:00", "close": "21:00" }
+    ],
+    "notes": [
+      "The kitchen takes last orders 30 minutes before closing.",
+      "Hibachi tables are seated together, eight guests to a grill."
+    ],
+    "exceptions": [
+      { "date": "2026-11-26", "label": "Thanksgiving Day", "closed": true },
+      { "date": "2026-12-24", "label": "Christmas Eve", "open": "11:00", "close": "15:00" },
+      { "date": "2026-12-25", "label": "Christmas Day", "closed": true },
+      { "date": "2026-12-31", "label": "New Year's Eve", "open": "16:00", "close": "23:30" }
+    ]
+  },
+
+  "links": {
+    "order": { "label": "Order online" },
+    "reserve": { "label": "Reserve a table" },
+    "giftCards": { "label": "Gift cards" },
+    "social": {}
+  },
+
+  "announcement": {
+    "text": "Now booking holiday hibachi parties and catering. Tell us about your event.",
+    "href": "/catering",
+    "until": "2027-01-02"
+  },
+
+  "hero": {
+    "eyebrow": "Hibachi · Sushi · Sake",
+    "headline": "Fire at the table.\nPrecision at the bar.",
+    "subhead": "Teppanyaki dinners cooked in front of you, a sushi bar that cuts every piece to order, and a sake list worth lingering over.",
+    "media": { "art": "flame" },
+    "embers": true
+  },
+
+  "intro": {
+    "eyebrow": "Welcome to Hibana",
+    "heading": "Two kitchens, one unhurried evening.",
+    "body": [
+      "Hibana means spark. On one side of the room, ours come off the teppan: steak, shrimp and vegetables seared tableside while the fried rice is tossed in front of you.",
+      "On the other side, the sushi bar works quietly. Fish is cut to order, rice is seasoned by hand through the night, and the chef's selection changes with what arrived that morning."
+    ],
+    "media": { "art": "rings" },
+    "highlights": [
+      { "title": "Six teppan tables", "text": "Each grill seats eight, so birthdays and big families fit at one table." },
+      { "title": "A ten-seat sushi bar", "text": "Order piece by piece or leave it to the chef." },
+      { "title": "A private room", "text": "Seats up to 24, with its own grill, for parties and company dinners." }
+    ]
+  },
+
+  "featured": {
+    "eyebrow": "From the menu",
+    "heading": "A few favorites to start with",
+    "intro": "The full menu runs from weekday lunch boxes to a chef's selection at the bar."
+  },
+
+  "experiences": [
+    {
+      "eyebrow": "The grill",
+      "title": "Dinner with a front-row seat",
+      "body": "Every hibachi dinner starts with clear onion soup and a ginger-dressed salad. Then the grill is lit, and your chef cooks the whole table's meal in front of you: fried rice, seasonal vegetables, and whatever you chose to go with them.",
+      "media": { "art": "grill" },
+      "cta": { "label": "See hibachi dinners", "href": "/menu#hibachi-dinners" }
+    },
+    {
+      "eyebrow": "The sushi bar",
+      "title": "Cut to order, never ahead",
+      "body": "Nigiri and sashimi are sliced when you order them, and rolls are made one at a time. Sit at the bar and ask what is good tonight, or start with the chef's selection and go from there.",
+      "media": { "art": "nigiri" },
+      "cta": { "label": "See the sushi menu", "href": "/menu#nigiri-sashimi" }
+    },
+    {
+      "eyebrow": "Sake and cocktails",
+      "title": "Something to pour while the grill heats",
+      "body": "A short, well-chosen list: junmai and ginjo sake by the glass or bottle, Japanese beer, highballs, and a few cocktails built around yuzu, shiso and smoke.",
+      "media": { "art": "sake" },
+      "cta": { "label": "See drinks", "href": "/menu#drinks" }
+    }
+  ],
+
+  "gallery": {
+    "heading": "A look inside",
+    "intro": "The grill, the bar and a few plates on their way out.",
+    "images": []
+  },
+
+  "catering": {
+    "enabled": true,
+    "form": true,
+    "heading": "Catering & private events",
+    "intro": "Sushi platters for the office, a hibachi chef in your backyard, or the private room for a rehearsal dinner. Tell us the date and the headcount, and we will come back to you with options and a quote.",
+    "points": [
+      "Sushi and appetizer platters for pickup or delivery",
+      "On-site hibachi: our chef, our grill, your location",
+      "A private room for up to 24 guests",
+      "Menus planned around allergies and dietary needs"
+    ],
+    "serviceTypes": [
+      "Platters for pickup",
+      "Delivery and setup",
+      "On-site hibachi chef",
+      "Private dining room"
+    ],
+    "minGuests": 10,
+    "maxGuests": 300,
+    "leadTimeDays": 3,
+    "media": { "art": "chopsticks" }
+  },
+
+  "about": {
+    "heading": "A spark, a grill and a very sharp knife.",
+    "body": [
+      "Hibana is a fictional restaurant, written to show what a real one's story could look like here. In place of this paragraph, an owner might tell guests where the family learned to cook, why they opened in this neighborhood, or what has stayed on the menu since the first day.",
+      "A good story page is short and specific. It names the people in the kitchen, says what the restaurant cares about, and gives guests a reason to feel they know the place before they walk in.",
+      "Everything on this page comes from one simple settings file, so it can be rewritten in minutes whenever the story changes."
+    ],
+    "media": { "art": "leaf" },
+    "values": [
+      { "title": "Cooked in front of you", "text": "Nothing at the grill is hidden. You watch your dinner come together." },
+      { "title": "Bought in small amounts", "text": "Fish is ordered often and in small quantities, so the sushi case turns over quickly." },
+      { "title": "Room for everyone", "text": "Kids' hibachi, vegetarian dinners and gluten-free options are on the regular menu." }
+    ]
+  },
+
+  "faq": [
+    {
+      "q": "Do you take reservations?",
+      "a": "Yes. Hibachi tables fill early on weekends, so reservations are recommended for parties of five or more. The sushi bar is first come, first served."
+    },
+    {
+      "q": "Can you accommodate food allergies?",
+      "a": "Tell your server before you order. Hibachi dinners can be cooked without shellfish, sesame or soy sauce on a cleaned section of the grill, and many sushi items can be made gluten-free."
+    },
+    {
+      "q": "Is there parking?",
+      "a": "There is a free lot behind the building, and street parking on both sides is free after 5 pm."
+    },
+    {
+      "q": "Do you have a kids' menu?",
+      "a": "Yes. Kids' hibachi dinners for guests 12 and under come with soup, fried rice and vegetables."
+    },
+    {
+      "q": "Can I bring a cake for a birthday?",
+      "a": "Of course. Let us know when you book and we will keep it cold and bring plates."
+    }
+  ],
+
+  "footer": {
+    "note": "Hibana is a sample concept created to demonstrate a restaurant website. It is not a real business.",
+    "studioCredit": true
+  }
+}

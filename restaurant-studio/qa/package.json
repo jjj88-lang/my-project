@@ -1,0 +1,16 @@
+{
+  "name": "restaurant-studio-qa",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Browser checks every client site must pass before it goes live.",
+  "scripts": {
+    "qa": "playwright test",
+    "qa:report": "playwright show-report"
+  },
+  "dependencies": {
+    "axe-core": "^4.11.0"
+  },
+  "devDependencies": {
+    "playwright": "1.63.0"
+  }
+}

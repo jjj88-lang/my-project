@@ -1,0 +1,38 @@
+{
+  "name": "sidework-agency-site",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "prepare-site": "tsx scripts/prepare.ts",
+    "predev": "npm run prepare-site --silent",
+    "dev": "next dev --port 3000",
+    "prebuild": "tsx scripts/prepare.ts --fresh-secret",
+    "build": "next build",
+    "start": "next start --port 3000",
+    "lint": "eslint",
+    "typecheck": "npm run prepare-site --silent && next typegen && tsc --noEmit",
+    "test": "npm run prepare-site --silent && vitest run",
+    "preflight": "tsx scripts/preflight.ts",
+    "capture": "node scripts/capture-work.cjs",
+    "review": "node scripts/review.cjs"
+  },
+  "dependencies": {
+    "next": "16.4.6",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "4.3.3",
+    "@types/node": "^22.20.5",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "axe-core": "^4.14.0",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.6",
+    "tailwindcss": "4.3.3",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vitest": "^5.1.0"
+  }
+}
