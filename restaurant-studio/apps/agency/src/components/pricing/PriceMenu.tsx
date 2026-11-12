@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 
 import { Icon } from "@/components/ui/Icon";
 import { catering, firstSentence, maintenance, money, premium, pricing, starter } from "@/lib/pricing";
+import { smart } from "@/lib/text";
 
 /**
  * Prices typeset the way a restaurant prints them: the name, a dotted leader, the price at the
@@ -11,6 +12,7 @@ export function MenuLine({
   name,
   price,
   unit,
+  unitShort,
   children,
   size = "md",
   id,
@@ -19,6 +21,8 @@ export function MenuLine({
   price: number;
   /** For example "a month". */
   unit?: string;
+  /** A shorter form shown on narrow screens, for example "/mo". Screen readers get the long one. */
+  unitShort?: string;
   children?: ReactNode;
   size?: "md" | "lg";
   id?: string;
@@ -31,7 +35,16 @@ export function MenuLine({
         <span className="leader" aria-hidden="true" />
         <p className={`display nums whitespace-nowrap ${type} leading-[1.08]`}>
           {money(price)}
-          {unit && <span className="ml-1.5 font-mono text-[0.72rem] font-medium tracking-[0.06em] text-ink-soft">{unit}</span>}
+          {unit && (
+            <span className="ml-1.5 font-mono text-[0.72rem] font-medium tracking-[0.06em] text-ink-soft">
+              {unitShort && (
+                <span aria-hidden="true" className="-ml-1 sm:hidden">
+                  {unitShort}
+                </span>
+              )}
+              <span className={unitShort ? "max-sm:sr-only" : undefined}>{unit}</span>
+            </span>
+          )}
         </p>
       </div>
       {children}
@@ -54,7 +67,7 @@ export function IncludesList({ items, columns = false }: { items: string[]; colu
       {items.map((item) => (
         <li key={item} className="flex gap-2.5">
           <Icon name="check" className="mt-[0.3rem] size-4 text-accent" strokeWidth={2} />
-          <span>{item}</span>
+          <span>{smart(item)}</span>
         </li>
       ))}
     </ul>
@@ -74,16 +87,16 @@ export function PriceMenuBrief() {
 
       <div className="mt-8 grid gap-7">
         <MenuLine name={starter.name} price={starter.price}>
-          <p className={briefNote}>{firstSentence(starter.summary)}</p>
+          <p className={briefNote}>{smart(firstSentence(starter.summary))}</p>
         </MenuLine>
         <MenuLine name={premium.name} price={premium.price}>
-          <p className={briefNote}>{firstSentence(premium.summary)}</p>
+          <p className={briefNote}>{smart(firstSentence(premium.summary))}</p>
         </MenuLine>
         <MenuLine name={catering.name} price={catering.price}>
-          <p className={briefNote}>An add-on. {firstSentence(catering.summary)}</p>
+          <p className={briefNote}>An add-on. {smart(firstSentence(catering.summary))}</p>
         </MenuLine>
-        <MenuLine name={maintenance.name} price={maintenance.pricePerMonth} unit="a month">
-          <p className={briefNote}>Optional. {firstSentence(maintenance.summary)}</p>
+        <MenuLine name={maintenance.name} price={maintenance.pricePerMonth} unit="a month" unitShort="/mo">
+          <p className={briefNote}>Optional. {smart(firstSentence(maintenance.summary))}</p>
         </MenuLine>
       </div>
 

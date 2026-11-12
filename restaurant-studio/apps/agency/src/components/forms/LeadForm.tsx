@@ -55,22 +55,31 @@ export function LeadForm({
   const formRef = useRef<HTMLFormElement>(null);
   const resultRef = useRef<HTMLDivElement>(null);
 
-  async function fetchToken(): Promise<boolean> {
+  /**
+   * Asks the server for a form token and keeps it. Resolves to whether the inbox is accepting
+   * requests, or to null when the server could not be reached.
+   */
+  async function fetchToken(): Promise<{ accepting: boolean } | null> {
     try {
       const res = await fetch("/api/form-token", { method: "POST" });
       const data = (await res.json()) as { token?: string; accepting?: boolean };
-      if (!res.ok || !data.token) return false;
+      if (!res.ok || !data.token) return null;
       token.current = { value: data.token, at: Date.now() };
-      setAccepting(data.accepting !== false);
-      return true;
+      return { accepting: data.accepting !== false };
     } catch {
-      return false;
+      return null;
     }
   }
 
   // Ask for a token as soon as the form is on screen, so it has aged by the time someone finishes typing.
   useEffect(() => {
-    void fetchToken();
+    let onScreen = true;
+    void fetchToken().then((answer) => {
+      if (onScreen && answer) setAccepting(answer.accepting);
+    });
+    return () => {
+      onScreen = false;
+    };
   }, []);
 
   // Pages stay mounted while hidden during navigation. Clear a finished request when this page is

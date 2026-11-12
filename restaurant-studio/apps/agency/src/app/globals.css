@@ -406,15 +406,19 @@
     --hole: 3.5px;
     background: var(--color-card);
     padding-bottom: calc(var(--tooth) / 2);
+    /*
+     * Both layers repeat sideways only. Repeating downwards too lets a sliver of the next tile
+     * show as a hairline under the torn edge whenever the ticket's height is a fraction of a pixel.
+     */
     -webkit-mask:
-      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%,
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x,
       radial-gradient(circle at 50% 0, #0000 var(--hole), #000 calc(var(--hole) + 0.5px)) 50% 0 / calc(var(--hole) * 4.5)
-        100%;
+        100% repeat-x;
     -webkit-mask-composite: source-in;
     mask:
-      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%,
+      conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x,
       radial-gradient(circle at 50% 0, #0000 var(--hole), #000 calc(var(--hole) + 0.5px)) 50% 0 / calc(var(--hole) * 4.5)
-        100%;
+        100% repeat-x;
     mask-composite: intersect;
   }
 
@@ -423,8 +427,9 @@
     --tooth: 12px;
     background: var(--color-card);
     padding-bottom: calc(var(--tooth) / 2);
-    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
-    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--tooth) 100%;
+    -webkit-mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100%
+      repeat-x;
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / var(--tooth) 100% repeat-x;
   }
 
   .dash-rule {

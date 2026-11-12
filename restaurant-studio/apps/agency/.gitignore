@@ -46,3 +46,6 @@ next-env.d.ts
 
 # leads written by the "local" inbox driver during development (never commit real inquiries)
 /data/
+
+# screenshots written by scripts/review.cjs while checking pages by eye
+/.review/

@@ -7,19 +7,22 @@
  * whatever comes back undefined, so the site builds and reads properly with any subset of images.
  *
  * File names are fixed by scripts/capture-work.cjs: <demo>-<page>-<desktop|mobile>.png
+ *
+ * Keep the glob as it is, with whole modules and `.default` read below. Asking the bundler for
+ * `import: "default"` works in development but comes back undefined in a production build
+ * (Next.js 16.4.6), which silently removes every screenshot from the built site.
  */
 import type { StaticImageData } from "next/image";
 
 import type { DemoKey } from "@/lib/demos";
 
-const files = import.meta.glob<StaticImageData>("*.png", {
+const files = import.meta.glob<{ default: StaticImageData }>("*.png", {
   base: "../../../public/work",
   eager: true,
-  import: "default",
 });
 
 const byName = new Map<string, StaticImageData>(
-  Object.entries(files).map(([file, image]) => [file.replace(/^\.\//, "").replace(/\.png$/, ""), image]),
+  Object.entries(files).map(([file, image]) => [file.replace(/^\.\//, "").replace(/\.png$/, ""), image.default]),
 );
 
 export type ShotPage = "home" | "menu" | "catering" | "visit";

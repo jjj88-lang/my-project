@@ -61,11 +61,14 @@ export function PhoneFrame({
 export function SampleTag({ children, tone = "ink" }: { children?: React.ReactNode; tone?: "ink" | "on-band" }) {
   return (
     <span
-      className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-[0.7rem] font-medium uppercase tracking-[0.12em] ${
+      className={`inline-flex items-baseline gap-2 rounded-[0.4rem] border px-3 py-1.5 text-left font-mono text-[0.7rem] font-medium uppercase leading-[1.5] tracking-[0.12em] ${
         tone === "on-band" ? "border-rule-on-band text-on-band" : "border-rule-strong bg-card text-ink"
       }`}
     >
-      <span className={`size-1.5 rounded-full ${tone === "on-band" ? "bg-accent-on-band" : "bg-accent"}`} aria-hidden="true" />
+      <span
+        className={`size-1.5 shrink-0 -translate-y-px rounded-full ${tone === "on-band" ? "bg-accent-on-band" : "bg-accent"}`}
+        aria-hidden="true"
+      />
       {children ?? "Sample concept, fictional restaurant"}
     </span>
   );

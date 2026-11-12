@@ -1,7 +1,8 @@
 /**
  * How a project runs, from the first call to launch. Every number comes from pricing.json.
  */
-import { catering, draftDaysRange, inWords, maintenance, money, premium, pricing, starter } from "@/lib/pricing";
+import { FIRST_CALL_MINUTES } from "@/content/facts";
+import { capitalize, catering, draftDaysRange, inWords, maintenance, money, premium, pricing, starter } from "@/lib/pricing";
 
 export type ProcessStep = {
   /** Short label printed on the ticket, in capitals. */
@@ -19,9 +20,9 @@ const rounds = inWords(starter.revisionRounds);
 export const PROCESS_STEPS: ProcessStep[] = [
   {
     station: "Call",
-    title: "A 15-minute call",
+    title: `A ${FIRST_CALL_MINUTES}-minute call`,
     text: "You tell me about the restaurant and what is not working on the site today. I tell you plainly which package fits, or that you do not need one.",
-    meta: "Free · 15 minutes",
+    meta: `Free · ${FIRST_CALL_MINUTES} minutes`,
   },
   {
     station: "Start",
@@ -37,7 +38,7 @@ export const PROCESS_STEPS: ProcessStep[] = [
   },
   {
     station: "Revise",
-    title: `${rounds.charAt(0).toUpperCase()}${rounds.slice(1)} rounds of changes`,
+    title: `${capitalize(rounds)} rounds of changes`,
     text: "You send one list of changes per round. I make them and send the link back for another look.",
     meta: `${starter.revisionRounds} rounds included`,
   },

@@ -16,6 +16,8 @@ export function Wordmark({ size = "md", tone = "ink" }: { size?: "md" | "lg"; to
       >
         {head}
       </span>
+      {/* A real space, so the name reads and copies as two words. Flex layout does not draw it. */}
+      {tail && " "}
       {tail && (
         <span
           className={`font-mono font-medium uppercase leading-none tracking-[0.16em] ${

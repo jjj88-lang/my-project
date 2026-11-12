@@ -27,7 +27,7 @@ const JOBS = [
     text: "Real text with prices, laid out the way your printed menu is. Nothing to download, nothing to pinch and zoom.",
   },
   {
-    name: "Today's hours",
+    name: "Today’s hours",
     text: "Regular hours, holiday hours, and a plain answer to the question every guest is asking: are you open right now?",
   },
   {
@@ -72,6 +72,7 @@ export default function HomePage() {
   const menuMobile = featured ? shot(featured, "menu", "mobile") : undefined;
   const visitMobile = featured ? shot(featured, "visit", "mobile") : undefined;
   const sampleLabel = demo ? `Sample concept: ${demo.name}, a fictional restaurant` : "";
+  const hasPhones = Boolean(menuMobile || visitMobile || heroMobile);
 
   const facts = [
     { figure: `From ${money(lowestPrice)}`, note: `for the one-page ${starter.name}` },
@@ -229,9 +230,19 @@ export default function HomePage() {
 
       {/* What you get -------------------------------------------------------------------------- */}
       <section className="overflow-x-clip bg-paper-deep">
-        <div className="shell grid gap-y-14 py-20 md:py-28 lg:grid-cols-12 lg:items-center lg:gap-x-8">
-          {(menuMobile || visitMobile || heroMobile) && (
-            <figure className="reveal lg:col-span-5">
+        {/* In reading order: heading, screenshots, list. On wide screens the screenshots take the left column. */}
+        <div className="shell grid gap-y-12 py-20 md:py-28 lg:grid-cols-12 lg:gap-x-8 lg:gap-y-9">
+          <div className={`reveal ${hasPhones ? "lg:col-span-6 lg:col-start-7 lg:row-start-1" : "lg:col-span-8"}`}>
+            <p className="eyebrow">What you get</p>
+            <h2 className="display display-lg mt-5">A finished site, not a kit.</h2>
+            <p className="lead mt-6 max-w-[44ch] text-ink-soft">
+              You send the menu, the hours and whatever photos you have. I do the rest, and you see it on your own
+              phone before anything goes live.
+            </p>
+          </div>
+
+          {hasPhones && (
+            <figure className="reveal lg:col-span-5 lg:col-start-1 lg:row-span-2 lg:row-start-1 lg:self-center">
               <div className="mx-auto flex max-w-[27rem] items-start justify-center gap-4 sm:gap-6">
                 {(menuMobile ?? heroMobile) && (
                   <PhoneFrame
@@ -260,14 +271,9 @@ export default function HomePage() {
             </figure>
           )}
 
-          <div className={`reveal ${menuMobile || visitMobile || heroMobile ? "lg:col-span-6 lg:col-start-7" : "lg:col-span-8"}`}>
-            <p className="eyebrow">What you get</p>
-            <h2 className="display display-lg mt-5">A finished site, not a kit.</h2>
-            <p className="lead mt-6 max-w-[44ch] text-ink-soft">
-              You send the menu, the hours and whatever photos you have. I do the rest, and you see it on your own
-              phone before anything goes live. Every {starter.name} includes:
-            </p>
-            <div className="mt-8">
+          <div className={`reveal ${hasPhones ? "lg:col-span-6 lg:col-start-7 lg:row-start-2" : "lg:col-span-8"}`}>
+            <h3 className="font-semibold">Every {starter.name} includes:</h3>
+            <div className="mt-5">
               <IncludesList items={starter.includes} />
             </div>
             <p className="mt-8">
@@ -282,24 +288,25 @@ export default function HomePage() {
 
       {/* Pricing in brief ------------------------------------------------------------------------- */}
       <section>
-        <div className="shell grid gap-y-12 py-20 md:py-28 lg:grid-cols-12 lg:items-start lg:gap-x-8">
-          <div className="reveal lg:sticky lg:top-28 lg:col-span-4">
+        {/* In reading order: heading, price list, link. On wide screens the link sits under the heading. */}
+        <div className="shell grid gap-y-10 py-20 md:py-28 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-8 lg:gap-y-6">
+          <div className="reveal lg:col-span-4 lg:row-start-1">
             <p className="eyebrow">Prices</p>
             <h2 className="display display-lg mt-5">Printed on the menu, like yours.</h2>
             <p className="lead mt-6 max-w-[34ch] text-ink-soft">
               You should not have to ask what something costs. These are the prices, and there is no separate quote
               to wait for.
             </p>
-            <p className="mt-6">
-              <Link href="/services" className="link-arrow">
-                See everything that is included
-                <Icon name="arrow" className="size-4" />
-              </Link>
-            </p>
           </div>
-          <div className="reveal lg:col-span-7 lg:col-start-6">
+          <div className="reveal lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1">
             <PriceMenuBrief />
           </div>
+          <p className="reveal lg:col-span-4 lg:col-start-1 lg:row-start-2">
+            <Link href="/services" className="link-arrow">
+              See everything that is included
+              <Icon name="arrow" className="size-4" />
+            </Link>
+          </p>
         </div>
       </section>
 
@@ -357,20 +364,20 @@ export default function HomePage() {
 
       {/* Four questions ------------------------------------------------------------------------------ */}
       <section className="bg-paper-deep">
-        <div className="shell grid gap-y-10 py-20 md:py-28 lg:grid-cols-12 lg:gap-x-8">
-          <div className="reveal lg:col-span-4">
+        <div className="shell grid gap-y-8 py-20 md:py-28 lg:grid-cols-12 lg:grid-rows-[auto_1fr] lg:gap-x-8 lg:gap-y-6">
+          <div className="reveal lg:col-span-4 lg:row-start-1">
             <p className="eyebrow">Questions</p>
             <h2 className="display display-lg mt-5">Asked before most calls.</h2>
-            <p className="mt-6">
-              <Link href="/faq" className="link-arrow">
-                All questions and answers
-                <Icon name="arrow" className="size-4" />
-              </Link>
-            </p>
           </div>
-          <div className="reveal lg:col-span-7 lg:col-start-6">
+          <div className="reveal lg:col-span-7 lg:col-start-6 lg:row-span-2 lg:row-start-1">
             <FaqList items={HOME_FAQ_IDS.map(faqById)} />
           </div>
+          <p className="reveal lg:col-span-4 lg:col-start-1 lg:row-start-2">
+            <Link href="/faq" className="link-arrow">
+              All questions and answers
+              <Icon name="arrow" className="size-4" />
+            </Link>
+          </p>
         </div>
       </section>
 

@@ -1,0 +1,20 @@
+{
+  "name": "studio-crm-tools",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Builds the sales CRM workbook (made to be opened in Google Sheets) and the private prospect package.",
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "build": "node build-crm.mjs",
+    "build:private": "node build-crm.mjs --prospects ../../private/prospects/prospects.csv --out ../../private/crm/sidework-crm.xlsx",
+    "prospects": "node make-prospect-package.mjs",
+    "check:names": "node check-no-real-names.mjs",
+    "test": "node --test \"test/*.test.mjs\""
+  },
+  "dependencies": {
+    "exceljs": "4.4.0"
+  }
+}

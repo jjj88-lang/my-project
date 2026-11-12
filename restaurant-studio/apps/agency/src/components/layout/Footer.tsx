@@ -10,7 +10,7 @@ function FooterHeading({ children }: { children: React.ReactNode }) {
   return <h2 className="eyebrow mb-3">{children}</h2>;
 }
 
-const footerLink = "inline-flex min-h-11 items-center text-on-band underline-offset-4 hover:underline";
+const footerLink = "inline-flex min-h-11 min-w-11 items-center text-on-band underline-offset-4 hover:underline";
 
 export async function Footer() {
   const year = await getYear();
@@ -18,8 +18,8 @@ export async function Footer() {
   return (
     <footer className="on-band no-print mt-auto bg-band text-on-band">
       <div className="shell py-14 lg:py-20">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
-          <div className="lg:col-span-5">
+        <div className="grid grid-cols-2 gap-x-6 gap-y-10 lg:grid-cols-12 lg:gap-8">
+          <div className="col-span-2 lg:col-span-5">
             <Wordmark size="lg" tone="on-band" />
             <p className="mt-5 max-w-sm text-on-band-soft">
               {studio.tagline}. Serving {serviceAreaText}
@@ -61,7 +61,7 @@ export async function Footer() {
             </ul>
           </div>
 
-          <div className="lg:col-span-2">
+          <div className="col-span-2 lg:col-span-2">
             <FooterHeading>Contact</FooterHeading>
             <ul>
               <li>

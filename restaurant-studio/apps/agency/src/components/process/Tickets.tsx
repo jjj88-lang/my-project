@@ -1,4 +1,5 @@
 import type { ProcessStep } from "@/content/process";
+import { smart } from "@/lib/text";
 
 const TILT = ["lg:-rotate-[0.9deg]", "lg:rotate-[0.6deg]", "lg:-rotate-[0.4deg]", "lg:rotate-[0.9deg]", "lg:-rotate-[0.7deg]"];
 
@@ -22,9 +23,9 @@ export function Tickets({ steps }: { steps: ProcessStep[] }) {
               <span>{step.station}</span>
             </header>
             <hr className="dash-rule my-3.5" />
-            <h3 className="display text-[1.5rem] leading-[1.1]">{step.title}</h3>
+            <h3 className="display text-[1.5rem] leading-[1.1]">{smart(step.title)}</h3>
             <p className="mt-3 flex-1 font-mono text-[0.8rem] leading-[1.65] text-ink-soft [word-spacing:-0.14em]">
-              {step.text}
+              {smart(step.text)}
             </p>
             <hr className="dash-rule my-3.5" />
             <p className="pb-6 font-mono text-[0.72rem] font-medium uppercase leading-relaxed tracking-[0.1em] text-ink">
