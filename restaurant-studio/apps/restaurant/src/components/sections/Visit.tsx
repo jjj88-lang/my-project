@@ -66,6 +66,9 @@ function MapCard() {
 /** Hours, address, phone and directions. The section every restaurant site must get right. */
 export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2" }) {
   const Heading = headingLevel;
+  // Sub-headings sit one level below the section heading, whichever level that is.
+  const Sub = headingLevel === "h1" ? "h2" : "h3";
+  const SubSub = headingLevel === "h1" ? "h3" : "h4";
   const { date } = await getToday();
   const rows = groupHours(site.hours);
   const holidays = upcomingExceptions(site.hours, date);
@@ -84,7 +87,7 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
         <div className="mt-12 grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="reveal lg:col-span-5">
             <div className="flex items-center justify-between gap-4 border-b border-line pb-4">
-              <h3 className="eyebrow">Hours</h3>
+              <Sub className="eyebrow">Hours</Sub>
               <OpenStatus hours={site.hours} timeZone={site.timezone} className="text-sm" />
             </div>
             <dl>
@@ -104,7 +107,7 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
 
             {holidays.length > 0 && (
               <div className="mt-6 rounded-site border border-accent/40 bg-accent/[0.06] p-5">
-                <h4 className="eyebrow">Holiday hours</h4>
+                <SubSub className="eyebrow">Holiday hours</SubSub>
                 <dl className="mt-3 grid gap-1.5 text-[0.95rem]">
                   {holidays.map((h) => (
                     <div key={h.date} className="flex justify-between gap-6">
@@ -132,7 +135,7 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
             <MapCard />
             <div className="mt-8 grid gap-8 sm:grid-cols-2">
               <div>
-                <h3 className="eyebrow">Find us</h3>
+                <Sub className="eyebrow">Find us</Sub>
                 <address className="mt-3 not-italic leading-relaxed">
                   {line1}
                   <br />
@@ -142,7 +145,7 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
                 {site.contact.parking && <p className="mt-2 text-sm text-muted">{site.contact.parking}</p>}
               </div>
               <div>
-                <h3 className="eyebrow">Call or write</h3>
+                <Sub className="eyebrow">Call or write</Sub>
                 <p className="mt-3">
                   <a href={telHref(site.contact.phone)} className="nums text-lg font-medium hover:text-accent">
                     {site.contact.phone}

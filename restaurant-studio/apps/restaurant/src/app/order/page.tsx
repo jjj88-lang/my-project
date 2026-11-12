@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function OrderPage() {
   // Real clients link straight to their ordering provider, so this page exists only on sample sites.
-  if (!site.sample || site.links.order?.url) notFound();
+  if (!site.sample || !site.links.order || site.links.order.url) notFound();
   return (
     <SamplePlaceholder
       icon="bag"

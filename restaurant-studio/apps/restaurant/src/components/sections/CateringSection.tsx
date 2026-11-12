@@ -27,6 +27,8 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
   const def = cateringFormEnabled ? getFormDef("catering") : undefined;
   const phoneHref = telHref(site.contact.phone);
   const steps = def ? FORM_STEPS : PHONE_STEPS;
+  // On its own page this sits directly under the page title, so its headings are one level higher.
+  const Sub = standalone ? "h2" : "h3";
 
   return (
     <section id="catering" className={standalone ? "py-16 md:py-24" : "border-t border-line py-20 md:py-28"} aria-labelledby={standalone ? undefined : "catering-heading"}>
@@ -53,7 +55,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
 
           {catering.points.length > 0 && (
             <>
-              <h3 className="eyebrow mt-10">What we can do</h3>
+              <Sub className="eyebrow mt-10">What we can do</Sub>
               <ul className="mt-4 grid gap-3">
                 {catering.points.map((point) => (
                   <li key={point} className="flex items-start gap-3.5">
@@ -65,7 +67,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
             </>
           )}
 
-          <h3 className="eyebrow mt-10">How it works</h3>
+          <Sub className="eyebrow mt-10">How it works</Sub>
           <ol className="mt-4 grid gap-5">
             {steps.map((step, i) => (
               <li key={step.title} className="flex gap-4">
@@ -85,7 +87,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
           <div className="rounded-site-lg border border-line bg-surface p-6 md:p-10">
             {def ? (
               <>
-                <h3 className="display text-[1.9rem]">Request a quote</h3>
+                <Sub className="display text-[1.9rem]">Request a quote</Sub>
                 <p className="mt-2 text-muted">
                   For {catering.minGuests} to {catering.maxGuests} guests. We reply to every request personally.
                 </p>
@@ -95,7 +97,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
               </>
             ) : (
               <>
-                <h3 className="display text-[1.9rem]">Let&apos;s plan it together</h3>
+                <Sub className="display text-[1.9rem]">Let&apos;s plan it together</Sub>
                 <p className="mt-3 max-w-[52ch] text-muted">
                   Call us with your date and headcount, and we will walk you through the options and put together a
                   quote. Nothing is booked until you have confirmed the details with us.

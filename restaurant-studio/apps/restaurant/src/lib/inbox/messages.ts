@@ -81,7 +81,7 @@ export function renderOwnerEmail(s: Submission, business: Business): EmailMessag
   const lines = [
     `${s.kindLabel} received ${s.submittedAtLocal} through ${s.source}.`,
     "",
-    ...s.fields.filter((f) => f.value !== "").map((f) => `${f.label}: ${f.value}`),
+    ...s.fields.filter((f) => f.value !== "").map((f) => `${f.label.replace(/[?:]\s*$/, "")}: ${f.value}`),
     "",
     `Reply to this email to answer ${firstName(s.customer.name)} directly.`,
     "",

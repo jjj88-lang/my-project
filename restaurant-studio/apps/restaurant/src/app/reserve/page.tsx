@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default function ReservePage() {
-  if (!site.sample || site.links.reserve?.url) notFound();
+  if (!site.sample || !site.links.reserve || site.links.reserve.url) notFound();
   return (
     <SamplePlaceholder
       icon="calendar"

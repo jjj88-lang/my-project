@@ -74,8 +74,9 @@ export function HeaderShell({
       className="no-print sticky top-0 z-40 h-[var(--header-h)] border-b border-transparent transition-[background-color,border-color,backdrop-filter] duration-300 data-[overlay=false]:border-line data-[overlay=false]:bg-bg/92 data-[overlay=false]:backdrop-blur-md"
     >
       <div className="container-site flex h-full items-center justify-between gap-6">
-        <Link href="/" className="flex shrink-0 items-center" aria-label="Home">
+        <Link href="/" className="flex min-h-11 shrink-0 items-center">
           {logo}
+          <span className="sr-only"> home page</span>
         </Link>
 
         <nav aria-label="Primary" className="hidden lg:block">
@@ -122,8 +123,9 @@ export function HeaderShell({
         className="m-0 h-dvh max-h-none w-screen max-w-none bg-bg p-0 text-ink backdrop:bg-black/80 open:flex open:flex-col"
       >
         <div className="container-site flex h-[var(--header-h)] shrink-0 items-center justify-between border-b border-line">
-          <Link href="/" onClick={closeMenu} className="flex items-center" aria-label="Home">
+          <Link href="/" onClick={closeMenu} className="flex min-h-11 items-center">
             {logo}
+            <span className="sr-only"> home page</span>
           </Link>
           <button type="button" className="-mr-2 grid size-11 place-items-center" onClick={closeMenu}>
             <Icon name="close" className="size-6" />

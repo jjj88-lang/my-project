@@ -14,6 +14,21 @@ import { cateringForm, contactForm, formatLongDate, todayIn, type FormDef, type 
 export const formSecret =
   process.env.FORM_SECRET && process.env.FORM_SECRET.length >= 32 ? process.env.FORM_SECRET : BUILD_SECRET;
 
+/**
+ * The visitor's address, for rate limiting only (it is never stored or logged).
+ * Hosting platforms set these headers themselves; on a server with no proxy in front they can be
+ * forged, which is one reason the rate limit is a brake on abuse and not a security boundary.
+ */
+export function clientIp(request: Request): string {
+  const headers = request.headers;
+  return (
+    headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() ||
+    headers.get("x-real-ip")?.trim() ||
+    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
+    "unknown"
+  );
+}
+
 export const cateringFormEnabled = site.catering.enabled && site.catering.form;
 export const contactFormEnabled = isPremium;
 

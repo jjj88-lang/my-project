@@ -1,5 +1,5 @@
 import { todayIn, validate } from "@/lib/forms/definitions";
-import { buildSubmission, business, formSecret, getFormDef, inboxSettings } from "@/lib/forms/server";
+import { buildSubmission, business, clientIp, formSecret, getFormDef, inboxSettings } from "@/lib/forms/server";
 import { deliver } from "@/lib/inbox";
 import { rateLimit } from "@/lib/inbox/ratelimit";
 import { verifyToken } from "@/lib/inbox/token";
@@ -9,10 +9,6 @@ const MAX_BODY_CHARS = 20_000;
 
 function reply(status: number, body: Record<string, unknown>, headers: Record<string, string> = {}) {
   return Response.json(body, { status, headers: { "Cache-Control": "no-store", ...headers } });
-}
-
-function clientIp(request: Request): string {
-  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
 }
 
 /**
