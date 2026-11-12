@@ -115,9 +115,21 @@ describe("launch preflight", () => {
     ...Object.fromEntries(Object.values(STRIPE_LINK_VARS).map((name, i) => [name, `https://buy.stripe.com/live${i}`])),
   };
 
-  it("blocks every placeholder in the current studio.json", () => {
-    const group = studioChecks(studio);
-    // The committed file is all placeholders until the owner fills it in.
+  it("blocks every placeholder in an unfilled studio.json", () => {
+    // What the file looks like before the owner fills it in. Built here, not read from the real
+    // file, so the test keeps passing once the owner's details are in.
+    const unfilled = {
+      ...studio,
+      name: "Sidework Studio",
+      nameIsTemporary: true,
+      url: "https://example.com",
+      email: "hello@example.com",
+      phone: "",
+      mailingAddress: "",
+      founder: { ...studio.founder, name: "", story: [] as string[] },
+      legalReviewed: false,
+    };
+    const group = studioChecks(unfilled);
     expect(group.items.filter((item) => item.level === "block").length).toBeGreaterThanOrEqual(7);
   });
 

@@ -4,19 +4,36 @@
   "nameIsTemporary": true,
   "tagline": "Websites for independent restaurants",
   "url": "https://example.com",
-  "email": "hello@example.com",
-  "phone": "",
+  "email": "jjj88@cornell.edu",
+  "phone": "(785) 409-0871",
   "mailingAddress": "",
-  "serviceAreas": ["Topeka, Kansas", "Ithaca, New York"],
+  "serviceAreas": [
+    "Topeka, Kansas",
+    "Ithaca, New York"
+  ],
   "worksRemotely": true,
   "founder": {
-    "name": "",
+    "name": "Justin Jeon",
     "role": "Founder",
-    "story": []
+    "story": [
+      "My parents own Yuki Restaurant of Japan, a sushi and hibachi restaurant in Topeka, Kansas, and it has been my second home for as long as I can remember. As a kid, I spent evenings in the back office next to stacks of soy sauce boxes, rolling silverware and finishing whatever worksheet my mom had assigned me while I waited for my parents to get off work.",
+      "In eighth grade I started working as a dishwasher. From there I moved up to busboy, and then became the youngest server on staff. As a server, I started every shift by clipping a dozen pens to my apron and memorizing the weekly specials, whether that was uni or sea bass.",
+      "I learned to treat the floor as a system: batching tasks, running shifts as repeatable loops, and coordinating so that big parties, like a table of 11 ordering teriyaki chicken and sushi, got their food in sync. During slow hours I'd suggest small experiments to the other servers, like swapping stations to see if things flowed better. One week we tracked our errors and had three fewer mistakes than the week before."
+    ]
   },
   "legalReviewed": false,
   "demos": {
-    "hibana": { "name": "Hibana", "descriptor": "Hibachi & Sushi", "plan": "premium", "url": "" },
-    "bulmat": { "name": "Bulmat", "descriptor": "Korean BBQ", "plan": "starter", "url": "" }
+    "hibana": {
+      "name": "Hibana",
+      "descriptor": "Hibachi & Sushi",
+      "plan": "premium",
+      "url": ""
+    },
+    "bulmat": {
+      "name": "Bulmat",
+      "descriptor": "Korean BBQ",
+      "plan": "starter",
+      "url": ""
+    }
   }
 }
