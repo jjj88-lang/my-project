@@ -10,7 +10,7 @@
   "description": "Hibana is a sample concept for a Japanese hibachi and sushi restaurant: teppanyaki dinners cooked tableside, a sushi bar cutting fish to order, and catering for any size party.",
   "cuisines": ["Japanese", "Hibachi", "Sushi"],
   "priceRange": "$$$",
-  "url": "https://hibana-sample.example.com",
+  "url": "https://hibana.example",
   "timezone": "America/Chicago",
 
   "logo": {
@@ -32,7 +32,7 @@
 
   "contact": {
     "phone": "(785) 555-0142",
-    "email": "hello@hibana-sample.example.com",
+    "email": "hello@hibana.example",
     "address": {
       "street": "1200 Sample Street",
       "city": "Topeka",

@@ -1,0 +1,207 @@
+{
+  "title": "Restaurant menu (menu.json)",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "$schema": {
+      "type": "string"
+    },
+    "currency": {
+      "default": "USD",
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 3
+    },
+    "updated": {
+      "description": "When prices were last confirmed with the owner",
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$"
+    },
+    "intro": {
+      "type": "string"
+    },
+    "notes": {
+      "default": [],
+      "description": "Small print shown under the menu",
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "tags": {
+      "default": {},
+      "description": "Extra tags for this menu, added to the built-in ones",
+      "type": "object",
+      "propertyNames": {
+        "type": "string"
+      },
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "short": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "label",
+          "short"
+        ]
+      }
+    },
+    "sections": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "description": {
+            "type": "string"
+          },
+          "note": {
+            "description": "Small print for the section, e.g. \"Served with soup and salad\"",
+            "type": "string"
+          },
+          "availability": {
+            "description": "e.g. \"Monday to Friday, 11 am to 2:30 pm\"",
+            "type": "string"
+          },
+          "items": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "minLength": 1
+                },
+                "description": {
+                  "type": "string"
+                },
+                "price": {
+                  "description": "Single price in dollars, e.g. 12.5",
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 100000
+                },
+                "variants": {
+                  "description": "Use instead of \"price\" for sizes, e.g. Nigiri (2 pc) / Sashimi (3 pc)",
+                  "minItems": 1,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "label": {
+                        "type": "string",
+                        "minLength": 1
+                      },
+                      "price": {
+                        "type": "number",
+                        "minimum": 0,
+                        "maximum": 100000
+                      }
+                    },
+                    "required": [
+                      "label",
+                      "price"
+                    ]
+                  }
+                },
+                "priceText": {
+                  "description": "Use instead of a number, e.g. \"Market price\"",
+                  "type": "string"
+                },
+                "tags": {
+                  "default": [],
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                },
+                "featured": {
+                  "default": false,
+                  "description": "Show on the home page",
+                  "type": "boolean"
+                },
+                "media": {
+                  "type": "object",
+                  "properties": {
+                    "image": {
+                      "description": "File name inside the client's images/ folder, e.g. \"hero.jpg\"",
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "alt": {
+                      "description": "What the photo shows, for screen readers and search engines. Required with an image.",
+                      "type": "string"
+                    },
+                    "art": {
+                      "description": "Line-art motif drawn when there is no photo",
+                      "type": "string",
+                      "enum": [
+                        "flame",
+                        "nigiri",
+                        "maki",
+                        "sake",
+                        "bowl",
+                        "grill",
+                        "rings",
+                        "leaf",
+                        "chopsticks",
+                        "fish",
+                        "tongs",
+                        "cup"
+                      ]
+                    },
+                    "focus": {
+                      "default": "center",
+                      "description": "Which part of the photo to keep when it is cropped",
+                      "type": "string",
+                      "enum": [
+                        "center",
+                        "top",
+                        "bottom",
+                        "left",
+                        "right"
+                      ]
+                    }
+                  }
+                },
+                "soldOut": {
+                  "default": false,
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "name"
+              ]
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "items"
+        ]
+      }
+    }
+  },
+  "required": [
+    "sections"
+  ]
+}

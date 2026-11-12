@@ -91,7 +91,13 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
               {rows.map((row) => (
                 <div key={row.label} className="flex items-baseline justify-between gap-6 border-b border-line py-3.5">
                   <dt className="font-medium">{row.label}</dt>
-                  <dd className={`nums text-right ${row.closed ? "text-muted" : ""}`}>{row.hours}</dd>
+                  <dd className={`nums text-right ${row.closed ? "text-muted" : ""}`}>
+                    {row.intervals.map((interval) => (
+                      <span key={interval} className="block">
+                        {interval}
+                      </span>
+                    ))}
+                  </dd>
                 </div>
               ))}
             </dl>
@@ -144,7 +150,7 @@ export async function Visit({ headingLevel = "h2" }: { headingLevel?: "h1" | "h2
                 </p>
                 {site.contact.email && (
                   <p className="mt-1">
-                    <a href={`mailto:${site.contact.email}`} className="break-all text-muted hover:text-accent">
+                    <a href={`mailto:${site.contact.email}`} className="text-muted [overflow-wrap:anywhere] hover:text-accent">
                       {site.contact.email}
                     </a>
                   </p>

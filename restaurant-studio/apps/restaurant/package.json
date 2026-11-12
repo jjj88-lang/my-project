@@ -15,7 +15,8 @@
     "validate": "tsx scripts/prepare-client.ts --check",
     "schemas": "tsx scripts/write-schemas.ts",
     "new-client": "tsx scripts/new-client.ts",
-    "images": "tsx scripts/optimize-images.ts"
+    "images": "tsx scripts/optimize-images.ts",
+    "launch-check": "tsx scripts/prepare-client.ts --check --launch"
   },
   "dependencies": {
     "next": "16.4.6",

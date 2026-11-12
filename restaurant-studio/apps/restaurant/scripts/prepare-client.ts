@@ -2,11 +2,16 @@
  * Validates a client's content and wires it into the app.
  *
  *   CLIENT=hibana npm run client      validate + generate src/generated/* (runs before dev/build/test)
- *   npm run validate                  validate only
+ *   npm run validate -- hibana        validate only
  *   npm run validate -- --all         validate every client in clients/
+ *   npm run launch-check -- hibana    validate strictly: placeholders left in a real client's files fail
  *
  * It fails loudly, with plain-language messages, when something would ship broken:
  * missing photos, missing alt text, unreadable color contrast, malformed hours or prices.
+ *
+ * "Before launch" findings (a placeholder domain, a fictional phone number) do not stop local
+ * previews, so a site can be built up gradually. They do stop a production deployment
+ * (VERCEL_ENV=production) and anything run with --launch.
  */
 import { randomBytes } from "node:crypto";
 import fs from "node:fs";
@@ -28,7 +33,7 @@ const CLIENTS_DIR = path.join(ROOT, "clients");
 const GENERATED_DIR = path.join(ROOT, "src", "generated");
 export const DEFAULT_CLIENT = "hibana";
 
-type Level = "error" | "warning" | "note";
+type Level = "error" | "launch" | "warning" | "note";
 type Finding = { level: Level; where: string; message: string };
 
 const c = {
@@ -244,15 +249,40 @@ export function loadClient(slug: string): Loaded {
 
   // --- Launch-readiness checks for real (non-sample) clients ---------------
   if (!site.sample) {
-    const placeholder = (v: string | undefined) => !!v && /example\.(com|org)|your-?domain|TODO|lorem/i.test(v);
+    const placeholder = (v: string | undefined) => !!v && /example\.(com|org)|\.example\b|your-?domain|TODO|lorem/i.test(v);
     if (placeholder(site.url)) {
-      findings.push({ level: "error", where: "site.json → url", message: "Still a placeholder. Set the real domain." });
+      findings.push({ level: "launch", where: "site.json → url", message: "Still a placeholder. Set the real domain." });
     }
     if (/555-01\d\d/.test(site.contact.phone)) {
       findings.push({
-        level: "error",
+        level: "launch",
         where: "site.json → contact.phone",
         message: "This is a fictional 555 number. Enter the restaurant's real phone number.",
+      });
+    }
+    if (placeholder(site.contact.email)) {
+      findings.push({ level: "launch", where: "site.json → contact.email", message: "Still a placeholder email address." });
+    }
+    if (/^(restaurant name|city)$/i.test(site.name) || /^city$/i.test(site.contact.address.city) || site.contact.address.postalCode === "00000") {
+      findings.push({
+        level: "launch",
+        where: "site.json → name / contact.address",
+        message: "The starter's placeholder name or address is still in place.",
+      });
+    }
+    const starterText = /A short, confident headline|Say what the restaurant is|One short line that says|First dish|Second dish/;
+    if (starterText.test(JSON.stringify([site.hero, site.intro, site.tagline, menu.sections]))) {
+      findings.push({
+        level: "launch",
+        where: "site.json / menu.json",
+        message: "Some of the starter's sample wording is still in place. Replace it with the restaurant's own.",
+      });
+    }
+    if (!menu.updated) {
+      findings.push({
+        level: "launch",
+        where: "menu.json → updated",
+        message: 'Add "updated": "YYYY-MM-DD", the date the owner last confirmed these prices.',
       });
     }
     if (!site.links.order?.url) {
@@ -262,11 +292,11 @@ export function loadClient(slug: string): Loaded {
         message: "No online-ordering link, so the Order button is hidden. Confirm the client does not take online orders.",
       });
     }
-    if (!menu.updated) {
+    if (!site.links.reserve?.url) {
       findings.push({
-        level: "warning",
-        where: "menu.json → updated",
-        message: "Record the date the owner last confirmed these prices.",
+        level: "note",
+        where: "site.json → links.reserve",
+        message: "No reservation link, so the Reserve button is hidden. Confirm the client does not take online reservations.",
       });
     }
   }
@@ -283,26 +313,35 @@ export function listClients(): string[] {
     .sort();
 }
 
-function report(loaded: Loaded): boolean {
-  const errors = loaded.findings.filter((f) => f.level === "error");
-  const warnings = loaded.findings.filter((f) => f.level === "warning");
-  const notes = loaded.findings.filter((f) => f.level === "note");
+function report(loaded: Loaded, strict: boolean): boolean {
+  const of = (level: Level) => loaded.findings.filter((f) => f.level === level);
+  const errors = of("error");
+  const launch = of("launch");
   const title = loaded.site ? `${loaded.site.name} (${loaded.slug})` : loaded.slug;
   console.log(`\n${c.bold(title)}`);
-  for (const f of errors) console.log(`  ${c.red("✗ error")}   ${f.where}\n            ${f.message}`);
-  for (const f of warnings) console.log(`  ${c.yellow("! warning")} ${f.where}\n            ${f.message}`);
-  for (const f of notes) console.log(`  ${c.dim(`· note    ${f.where}`)}\n            ${c.dim(f.message)}`);
+  for (const f of errors) console.log(`  ${c.red("✗ error")}         ${f.where}\n                  ${f.message}`);
+  for (const f of launch) {
+    console.log(`  ${(strict ? c.red : c.yellow)("✗ before launch")} ${f.where}\n                  ${f.message}`);
+  }
+  for (const f of of("warning")) console.log(`  ${c.yellow("! warning")}       ${f.where}\n                  ${f.message}`);
+  for (const f of of("note")) console.log(`  ${c.dim(`· note          ${f.where}`)}\n                  ${c.dim(f.message)}`);
+
+  const blocking = errors.length + (strict ? launch.length : 0);
   if (errors.length === 0) {
     const s = loaded.site!;
     const m = loaded.menu!;
     const items = m.sections.reduce((n, sec) => n + sec.items.length, 0);
-    console.log(
-      `  ${c.green("✓ valid")}   ${s.plan} plan${s.sample ? ", sample concept" : ""} · ${m.sections.length} menu sections, ${items} items · ${loaded.images.length} photos`,
-    );
-  } else {
-    console.log(`  ${c.red(`${errors.length} error${errors.length === 1 ? "" : "s"} must be fixed before this site can build.`)}`);
+    const summary = `${s.plan} plan${s.sample ? ", sample concept" : ""} · ${m.sections.length} menu sections, ${items} items · ${loaded.images.length} photos`;
+    if (blocking === 0 && launch.length === 0) console.log(`  ${c.green("✓ valid")}         ${summary}`);
+    else if (blocking === 0) {
+      console.log(`  ${c.green("✓ valid for preview")}  ${summary}`);
+      console.log(`  ${c.yellow(`${launch.length} item${launch.length === 1 ? "" : "s"} to finish before launch.`)}`);
+    }
   }
-  return errors.length === 0;
+  if (blocking > 0) {
+    console.log(`  ${c.red(`${blocking} problem${blocking === 1 ? "" : "s"} must be fixed before this site can ${strict && errors.length === 0 ? "launch" : "build"}.`)}`);
+  }
+  return blocking === 0;
 }
 
 function generate(loaded: Loaded, freshSecret: boolean) {
@@ -356,17 +395,19 @@ function main() {
   const checkOnly = args.includes("--check");
   const all = args.includes("--all");
   const freshSecret = args.includes("--fresh-secret");
+  // Strict mode: unfinished placeholders in a real client's files stop the run.
+  const strict = args.includes("--launch") || process.env.VERCEL_ENV === "production";
   const positional = args.filter((a) => !a.startsWith("--"));
   const slug = positional[0] ?? process.env.CLIENT ?? DEFAULT_CLIENT;
 
   if (all) {
-    const results = listClients().map((s) => report(loadClient(s)));
+    const results = listClients().map((s) => report(loadClient(s), strict));
     console.log("");
     process.exit(results.every(Boolean) ? 0 : 1);
   }
 
   const loaded = loadClient(slug);
-  const ok = report(loaded);
+  const ok = report(loaded, strict);
   if (!ok) {
     console.log("");
     process.exit(1);

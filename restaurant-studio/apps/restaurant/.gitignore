@@ -15,6 +15,7 @@
 
 # next.js
 /.next/
+/.next-*/
 /out/
 
 # production
@@ -45,3 +46,6 @@ next-env.d.ts
 
 # local inbox data written by the "local" inbox driver (never commit customer inquiries)
 /data/
+
+# untouched client photos kept by "npm run images" (may contain location metadata)
+/clients/*/images/_originals/

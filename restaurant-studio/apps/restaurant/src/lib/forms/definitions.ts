@@ -154,7 +154,6 @@ export function contactForm(): FormDef {
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const ISO_DATE = /^\d{4}-\d{2}-\d{2}$/;
 // Control characters other than tab, newline and carriage return.
-// eslint-disable-next-line no-control-regex
 const CONTROL_CHARS = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F]/g;
 
 /** Trim, drop control characters, normalize line endings and cap the length. */

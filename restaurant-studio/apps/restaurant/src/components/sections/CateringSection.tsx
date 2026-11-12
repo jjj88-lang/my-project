@@ -5,9 +5,15 @@ import { cateringFormEnabled, getFormDef } from "@/lib/forms/server";
 import { site } from "@/lib/site";
 import { telHref } from "@/lib/site/format";
 
-const STEPS = [
+const FORM_STEPS = [
   { title: "Tell us about your event", text: "The date, the headcount and what you have in mind. It takes about two minutes." },
   { title: "We get back to you", text: "A person, not a robot, reviews your request and contacts you with options and a quote." },
+  { title: "You confirm", text: "Nothing is booked until you and the restaurant have agreed on the details." },
+];
+
+const PHONE_STEPS = [
+  { title: "Call or email us", text: "Tell us the date, the headcount and what you have in mind." },
+  { title: "We talk it through", text: "We go over the options with you and put together a quote." },
   { title: "You confirm", text: "Nothing is booked until you and the restaurant have agreed on the details." },
 ];
 
@@ -20,6 +26,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
   if (!catering.enabled) return null;
   const def = cateringFormEnabled ? getFormDef("catering") : undefined;
   const phoneHref = telHref(site.contact.phone);
+  const steps = def ? FORM_STEPS : PHONE_STEPS;
 
   return (
     <section id="catering" className={standalone ? "py-16 md:py-24" : "border-t border-line py-20 md:py-28"} aria-labelledby={standalone ? undefined : "catering-heading"}>
@@ -60,7 +67,7 @@ export function CateringSection({ standalone = false }: { standalone?: boolean }
 
           <h3 className="eyebrow mt-10">How it works</h3>
           <ol className="mt-4 grid gap-5">
-            {STEPS.map((step, i) => (
+            {steps.map((step, i) => (
               <li key={step.title} className="flex gap-4">
                 <span className="nums mt-0.5 text-xs font-semibold tracking-[0.2em] text-accent">
                   {String(i + 1).padStart(2, "0")}

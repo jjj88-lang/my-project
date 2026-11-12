@@ -1,0 +1,110 @@
+{
+  "$schema": "../../schema/menu.schema.json",
+  "currency": "USD",
+  "updated": "2026-11-01",
+  "intro": "Barbecue is priced per order and grilled at your table. Every order comes with banchan, lettuce wraps, ssamjang and steamed rice.",
+  "notes": [
+    "Consuming raw or undercooked meats, poultry, seafood, shellfish or eggs may increase your risk of foodborne illness.",
+    "Please tell your server about any allergies. Many dishes contain soy, sesame, wheat, shellfish or fish sauce.",
+    "This is a sample menu for a fictional restaurant. Items and prices are illustrative."
+  ],
+  "sections": [
+    {
+      "id": "barbecue",
+      "name": "Table Barbecue",
+      "description": "Two orders minimum to light the grill.",
+      "items": [
+        {
+          "name": "Galbi",
+          "description": "Beef short rib, cut thin across the bone and marinated overnight in soy, pear and garlic.",
+          "price": 34,
+          "tags": ["house"],
+          "featured": true,
+          "media": { "art": "grill" }
+        },
+        { "name": "Bulgogi", "description": "Thin-sliced ribeye in a sweet soy marinade.", "price": 26 },
+        { "name": "Samgyeopsal", "description": "Thick-cut pork belly, unmarinated, with sesame oil and salt for dipping.", "price": 24, "tags": ["gf"] },
+        { "name": "Chadolbaegi", "description": "Paper-thin beef brisket that cooks in seconds.", "price": 27, "tags": ["gf"] },
+        { "name": "Dak Galbi", "description": "Chicken thigh in a gochujang marinade.", "price": 22, "tags": ["spicy"] },
+        { "name": "Saeu Gui", "description": "Head-on shrimp with garlic butter.", "price": 25, "tags": ["shellfish", "gf"] },
+        { "name": "Mushroom & Vegetable Platter", "description": "King oyster mushrooms, zucchini, onion, sweet potato and tofu.", "price": 18, "tags": ["vg"] }
+      ]
+    },
+    {
+      "id": "combinations",
+      "name": "Grill Combinations",
+      "note": "Includes a steamed egg, a stew of your choice and unlimited banchan.",
+      "items": [
+        {
+          "name": "Bulmat for Two",
+          "description": "Galbi, pork belly and bulgogi, with kimchi jjigae or doenjang jjigae.",
+          "price": 68,
+          "tags": ["house"],
+          "featured": true,
+          "media": { "art": "tongs" }
+        },
+        { "name": "Family Grill for Four", "description": "Galbi, bulgogi, pork belly, brisket and spicy chicken, with two stews.", "price": 128 }
+      ]
+    },
+    {
+      "id": "small-plates",
+      "name": "Small Plates",
+      "items": [
+        {
+          "name": "Haemul Pajeon",
+          "description": "A crisp scallion pancake with shrimp and squid, soy dipping sauce.",
+          "price": 15,
+          "tags": ["shellfish"],
+          "featured": true,
+          "media": { "art": "leaf" }
+        },
+        { "name": "Mandu", "description": "Six pork and chive dumplings, steamed or fried.", "price": 9 },
+        { "name": "Korean Fried Chicken", "description": "Double-fried wings in soy garlic or sweet chili glaze.", "price": 14 },
+        { "name": "Tteokbokki", "description": "Chewy rice cakes in a spicy gochujang sauce, with fish cake and a soft egg.", "price": 13, "tags": ["spicy"] },
+        { "name": "Gyeran Jjim", "description": "Steamed egg, served bubbling in a stone pot.", "price": 8, "tags": ["v", "gf"] },
+        { "name": "Corn Cheese", "description": "Sweet corn under a blanket of melted cheese.", "price": 8, "tags": ["v", "gf"] }
+      ]
+    },
+    {
+      "id": "stews",
+      "name": "Stews & Soups",
+      "note": "Served with rice and banchan.",
+      "items": [
+        { "name": "Kimchi Jjigae", "description": "Aged kimchi, pork belly and tofu.", "price": 15, "tags": ["spicy"] },
+        { "name": "Sundubu Jjigae", "description": "Soft tofu stew with seafood, pork or mushrooms.", "price": 15, "tags": ["spicy"] },
+        { "name": "Doenjang Jjigae", "description": "Fermented soybean stew with zucchini, tofu and clams.", "price": 14, "tags": ["shellfish"] },
+        { "name": "Galbitang", "description": "Clear beef short rib soup with glass noodles.", "price": 19, "tags": ["gf"] },
+        { "name": "Budae Jjigae", "description": "Army stew for two: kimchi, sausage, ramen noodles and cheese.", "price": 34, "tags": ["spicy"] }
+      ]
+    },
+    {
+      "id": "rice-noodles",
+      "name": "Rice & Noodles",
+      "items": [
+        {
+          "name": "Dolsot Bibimbap",
+          "description": "Rice crisped in a hot stone bowl with vegetables, a fried egg and gochujang. Beef, tofu or vegetables only.",
+          "price": 17,
+          "tags": ["gfo"],
+          "featured": true,
+          "media": { "art": "bowl" }
+        },
+        { "name": "Japchae", "description": "Sweet potato glass noodles stir-fried with vegetables and sesame.", "price": 16, "tags": ["v"] },
+        { "name": "Mul Naengmyeon", "description": "Buckwheat noodles in an icy beef broth, with pear and a boiled egg.", "price": 15 },
+        { "name": "Kimchi Fried Rice", "description": "With a fried egg on top. Add pork belly for 4.", "price": 14, "tags": ["spicy"] },
+        { "name": "Steamed Rice", "price": 3, "tags": ["vg", "gf"] }
+      ]
+    },
+    {
+      "id": "drinks",
+      "name": "Drinks",
+      "items": [
+        { "name": "Soju", "description": "Original, grapefruit or green grape.", "price": 14 },
+        { "name": "Makgeolli", "description": "Lightly sparkling rice wine, served in a kettle.", "price": 16 },
+        { "name": "Korean Beer", "price": 7 },
+        { "name": "Sikhye", "description": "Sweet rice punch, served cold.", "price": 5, "tags": ["vg"] },
+        { "name": "Roasted Barley Tea", "description": "Hot or iced, on the house.", "priceText": "Free", "tags": ["vg"] }
+      ]
+    }
+  ]
+}

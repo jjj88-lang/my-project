@@ -129,7 +129,7 @@ function CinematicHero() {
   const image = photo(hero.media.image);
 
   return (
-    <section className="relative isolate -mt-[var(--header-h)] flex min-h-[min(100svh,58rem)] flex-col justify-end overflow-hidden">
+    <section className="relative isolate -mt-[var(--header-h)] flex min-h-[min(calc(100svh-4.75rem),58rem)] flex-col justify-end overflow-hidden">
       <div className="absolute inset-0 -z-10">
         {image ? (
           <>
@@ -148,12 +148,11 @@ function CinematicHero() {
         ) : (
           <div className="absolute inset-0" aria-hidden="true">
             <div className="absolute inset-0 bg-[radial-gradient(58%_62%_at_78%_72%,color-mix(in_srgb,var(--c-accent)_36%,transparent),transparent_70%),radial-gradient(40%_40%_at_88%_22%,color-mix(in_srgb,var(--c-accent)_13%,transparent),transparent_72%),radial-gradient(50%_40%_at_10%_100%,color-mix(in_srgb,var(--c-accent)_12%,transparent),transparent_70%)]" />
-            <div className="pattern-waves absolute inset-0 opacity-[0.06] [mask-composite:intersect]" />
-            <Art
-              motif={hero.media.art ?? "rings"}
-              strokeWidth={0.55}
-              className="breathe absolute right-[-18%] top-[12%] h-[78%] w-auto text-accent sm:right-[-4%] lg:right-[6%]"
-            />
+            <div className="pattern-waves absolute inset-0 opacity-[0.06]" />
+            {/* Phones: a faint oversized watermark behind the text. Desktop: a clear motif in the right-hand third. */}
+            <div className="absolute inset-y-0 right-[-35%] grid w-[120%] place-items-center opacity-25 sm:right-[-10%] sm:w-[70%] lg:right-0 lg:w-[42%] lg:opacity-100">
+              <Art motif={hero.media.art ?? "rings"} strokeWidth={0.55} className="breathe h-[72%] max-w-full text-accent" />
+            </div>
             <div className="absolute inset-x-0 bottom-0 h-1/2 bg-[linear-gradient(180deg,transparent,var(--c-bg))]" />
           </div>
         )}
@@ -169,7 +168,7 @@ function CinematicHero() {
         )}
         <Headline
           text={hero.headline}
-          className="display enter mt-5 max-w-[15ch] text-[clamp(2.9rem,9vw,7.25rem)]"
+          className="display enter mt-5 max-w-[15ch] text-[clamp(2.9rem,9vw,7.25rem)] [--i:1]"
         />
         {hero.subhead && (
           <p

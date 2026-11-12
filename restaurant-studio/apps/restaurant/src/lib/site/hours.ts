@@ -66,18 +66,33 @@ function describeIntervals(list: Interval[]): string {
   return list.map((i) => `${formatMinutes(i.open)} – ${formatMinutes(i.close)}`).join(", ");
 }
 
-export type HoursRow = { days: Day[]; label: string; hours: string; closed: boolean };
+export type HoursRow = {
+  days: Day[];
+  label: string;
+  /** All of the day's hours on one line, e.g. "11 AM – 2:30 PM, 4:30 PM – 9:30 PM". */
+  hours: string;
+  /** The same hours one interval per entry, for narrow layouts. ["Closed"] when closed. */
+  intervals: string[];
+  closed: boolean;
+};
 
 /** Collapse consecutive days with identical hours: "Mon – Thu  11 AM – 9:30 PM". */
 export function groupHours(hours: Hours): HoursRow[] {
   const rows: HoursRow[] = [];
   for (const day of DAYS) {
-    const text = describeIntervals(intervalsFor(hours, day));
+    const list = intervalsFor(hours, day);
+    const text = describeIntervals(list);
     const last = rows[rows.length - 1];
     if (last && last.hours === text) {
       last.days.push(day);
     } else {
-      rows.push({ days: [day], label: "", hours: text, closed: text === "Closed" });
+      rows.push({
+        days: [day],
+        label: "",
+        hours: text,
+        intervals: list.length ? list.map((i) => `${formatMinutes(i.open)} – ${formatMinutes(i.close)}`) : ["Closed"],
+        closed: list.length === 0,
+      });
     }
   }
   for (const row of rows) {

@@ -19,6 +19,8 @@ export default function ErrorPage({ error, reset }: { error: Error & { digest?: 
           <button type="button" onClick={reset} className="btn btn-solid">
             Try again
           </button>
+          {/* A full page load on purpose: after an error, client-side state may be broken. */}
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages */}
           <a href="/" className="btn btn-ghost">
             Back to the home page
           </a>

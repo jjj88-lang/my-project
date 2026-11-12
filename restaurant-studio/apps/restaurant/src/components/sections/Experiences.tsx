@@ -19,7 +19,7 @@ export function Experiences() {
                   media={exp.media}
                   sizes="(min-width: 1024px) 58vw, 100vw"
                   className="aspect-[16/11] w-full"
-                  artClassName="h-[50%] w-[50%]"
+                  artClassName="h-[66%] w-[66%]"
                 />
               </div>
               <div className={`reveal lg:col-span-5 ${flip ? "lg:order-1 lg:pr-6" : "lg:pl-6"}`}>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { Icon, type IconName } from "@/components/ui/Icon";
-import { site } from "@/lib/site";
+import { isPremium, site } from "@/lib/site";
 import { telHref } from "@/lib/site/format";
 import { studio } from "@/lib/studio";
 
@@ -45,7 +45,7 @@ export function SamplePlaceholder({
         </div>
 
         <div className="mt-10 flex flex-wrap gap-3">
-          <Link href="/menu" className="btn btn-solid">
+          <Link href={isPremium ? "/menu" : "/#menu"} className="btn btn-solid">
             Back to the menu
           </Link>
           <a href={telHref(site.contact.phone)} className="btn btn-ghost">

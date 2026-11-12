@@ -6,19 +6,19 @@ export function Intro() {
   return (
     <section className="py-20 md:py-28 lg:py-36" aria-labelledby="intro-heading">
       <div className="container-site">
-        <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
-          <div className="reveal lg:col-span-7">
-            {intro.eyebrow && <p className="eyebrow">{intro.eyebrow}</p>}
-            <h2 id="intro-heading" className="display mt-5 max-w-[18ch] text-[clamp(2.2rem,5.2vw,4.25rem)]">
-              {intro.heading}
-            </h2>
-            <div className="prose-site mt-8 max-w-[58ch] text-[1.06rem] leading-[1.8] text-muted">
-              {intro.body.map((p, i) => (
-                <p key={i}>{p}</p>
-              ))}
+        {intro.media ? (
+          <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
+            <div className="reveal lg:col-span-7">
+              {intro.eyebrow && <p className="eyebrow">{intro.eyebrow}</p>}
+              <h2 id="intro-heading" className="display mt-5 max-w-[18ch] text-[clamp(2.2rem,5.2vw,4.25rem)]">
+                {intro.heading}
+              </h2>
+              <div className="prose-site mt-8 max-w-[58ch] text-[1.06rem] leading-[1.8] text-muted">
+                {intro.body.map((p, i) => (
+                  <p key={i}>{p}</p>
+                ))}
+              </div>
             </div>
-          </div>
-          {intro.media && (
             <div className="reveal lg:col-span-4 lg:col-start-9">
               <MediaFrame
                 media={intro.media}
@@ -26,8 +26,23 @@ export function Intro() {
                 className="aspect-[4/5] w-full max-lg:aspect-[16/10]"
               />
             </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          // No photo: the heading and the text share the row, so the section never has an empty half.
+          <div className="grid gap-8 lg:grid-cols-12 lg:gap-10">
+            <div className="reveal lg:col-span-6">
+              {intro.eyebrow && <p className="eyebrow">{intro.eyebrow}</p>}
+              <h2 id="intro-heading" className="display mt-5 max-w-[16ch] text-[clamp(2.2rem,5.2vw,4.25rem)]">
+                {intro.heading}
+              </h2>
+            </div>
+            <div className="prose-site reveal text-[1.06rem] leading-[1.8] text-muted lg:col-span-5 lg:col-start-8 lg:pt-10">
+              {intro.body.map((p, i) => (
+                <p key={i}>{p}</p>
+              ))}
+            </div>
+          </div>
+        )}
 
         {intro.highlights.length > 0 && (
           <ul className="mt-16 grid gap-x-10 gap-y-8 md:mt-24 md:grid-cols-3">

@@ -77,7 +77,7 @@ export async function Footer() {
                 <li>
                   <a
                     href={`mailto:${site.contact.email}`}
-                    className="inline-flex items-center gap-2.5 break-all py-1 hover:text-accent"
+                    className="inline-flex items-center gap-2.5 py-1 [overflow-wrap:anywhere] hover:text-accent"
                   >
                     <Icon name="mail" className="size-4 text-accent" />
                     {site.contact.email}
@@ -104,8 +104,14 @@ export async function Footer() {
             <dl className="grid gap-1.5">
               {hours.map((row) => (
                 <div key={row.label} className="flex justify-between gap-6">
-                  <dt className="text-muted">{row.label}</dt>
-                  <dd className="nums text-right">{row.hours}</dd>
+                  <dt className="whitespace-nowrap text-muted">{row.label}</dt>
+                  <dd className="nums text-right">
+                    {row.intervals.map((interval) => (
+                      <span key={interval} className="block whitespace-nowrap">
+                        {interval}
+                      </span>
+                    ))}
+                  </dd>
                 </div>
               ))}
             </dl>

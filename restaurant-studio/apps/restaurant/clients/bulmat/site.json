@@ -1,0 +1,118 @@
+{
+  "$schema": "../../schema/site.schema.json",
+
+  "plan": "starter",
+  "sample": true,
+
+  "name": "Bulmat",
+  "descriptor": "Korean BBQ",
+  "tagline": "Charcoal, smoke and a table full of banchan.",
+  "description": "Bulmat is a sample concept for a Korean BBQ restaurant: meats grilled over charcoal at your table, house-made banchan, stews and cold noodles. A one-page website example.",
+  "cuisines": ["Korean", "Korean BBQ"],
+  "priceRange": "$$",
+  "url": "https://bulmat.example",
+  "timezone": "America/New_York",
+
+  "logo": {
+    "text": "Bulmat"
+  },
+
+  "theme": {
+    "colors": {
+      "background": "#fbf7f0",
+      "text": "#1b1612",
+      "accent": "#b3261e"
+    },
+    "fonts": "modern",
+    "corners": "round",
+    "hero": "split"
+  },
+
+  "contact": {
+    "phone": "(607) 555-0117",
+    "email": "hello@bulmat.example",
+    "address": {
+      "street": "214 Sample Avenue",
+      "city": "Ithaca",
+      "region": "NY",
+      "postalCode": "14850",
+      "country": "US"
+    },
+    "neighborhood": "Two blocks up the hill from the Commons",
+    "parking": "Street parking out front, and a public garage one block away."
+  },
+
+  "hours": {
+    "regular": [
+      { "days": ["tue", "wed", "thu"], "open": "16:30", "close": "21:30" },
+      { "days": ["fri"], "open": "16:30", "close": "22:30" },
+      { "days": ["sat"], "open": "12:00", "close": "22:30" },
+      { "days": ["sun"], "open": "12:00", "close": "21:00" }
+    ],
+    "notes": ["Last seating for table grilling is one hour before closing."],
+    "exceptions": [
+      { "date": "2026-11-26", "label": "Thanksgiving Day", "closed": true },
+      { "date": "2026-12-25", "label": "Christmas Day", "closed": true }
+    ]
+  },
+
+  "links": {
+    "order": { "label": "Order pickup" },
+    "social": {}
+  },
+
+  "hero": {
+    "eyebrow": "Korean BBQ · Ithaca",
+    "headline": "You do the grilling.\nWe bring the banchan.",
+    "subhead": "Short rib, pork belly and bulgogi over real charcoal, with eight house-made side dishes on every table.",
+    "media": { "art": "grill" }
+  },
+
+  "intro": {
+    "eyebrow": "What bulmat means",
+    "heading": "Bulmat is the taste that only fire gives.",
+    "body": [
+      "It is the Korean word for the smoky edge on meat that has met real flame. Every table here has its own charcoal grill, so that flavor ends up on your plate, not in the kitchen.",
+      "Order a couple of cuts, wrap them in lettuce with rice and ssamjang, and keep the banchan coming. Refills are on us."
+    ],
+    "highlights": [
+      { "title": "Charcoal at every table", "text": "Hardwood charcoal, lit to order, with a server to help you get started." },
+      { "title": "Banchan made here", "text": "Eight side dishes that change with the season. Ask for more of any of them." },
+      { "title": "Not just barbecue", "text": "Stews, stone-bowl bibimbap and cold noodles for the nights you skip the grill." }
+    ]
+  },
+
+  "catering": {
+    "enabled": true,
+    "form": false,
+    "heading": "Group dinners & party trays",
+    "intro": "Bringing the whole team, or feeding a party at home? We set up long tables for groups and pack marinated meats, banchan and rice as trays to go.",
+    "points": [
+      "Tables for groups of up to 30",
+      "Party trays of marinated meats, ready to grill at home",
+      "Banchan, rice and japchae by the tray"
+    ],
+    "minGuests": 8,
+    "maxGuests": 30
+  },
+
+  "faq": [
+    {
+      "q": "Do you take reservations?",
+      "a": "We seat walk-ins most nights. For groups of eight or more, call ahead and we will hold a table."
+    },
+    {
+      "q": "Do we have to grill ourselves?",
+      "a": "Only if you want to. Your server will start the first round, and the kitchen is happy to grill any order for you."
+    },
+    {
+      "q": "Is there something for vegetarians?",
+      "a": "Yes. The mushroom and vegetable grill platter, tofu sundubu, vegetable bibimbap and most of the banchan are meat-free. Tell your server and we will point them out."
+    }
+  ],
+
+  "footer": {
+    "note": "Bulmat is a sample concept created to demonstrate a restaurant website. It is not a real business.",
+    "studioCredit": true
+  }
+}

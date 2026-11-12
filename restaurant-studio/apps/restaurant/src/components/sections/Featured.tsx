@@ -41,7 +41,7 @@ export function Featured() {
           </Link>
         </div>
 
-        <ul className="-mx-[var(--gutter)] mt-12 flex snap-x snap-mandatory gap-5 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
+        <ul className="-mx-[var(--gutter)] mt-12 flex snap-x snap-mandatory scroll-px-[var(--gutter)] gap-5 overflow-x-auto px-[var(--gutter)] pb-4 [scrollbar-width:none] lg:mx-0 lg:grid lg:grid-cols-4 lg:gap-6 lg:overflow-visible lg:px-0 lg:pb-0 [&::-webkit-scrollbar]:hidden">
           {items.map(({ item, sectionName, sectionId }, i) => {
             const price = lowestPrice(item);
             const href = isPremium ? `/menu#${sectionId}` : `/#${sectionId}`;
@@ -53,7 +53,7 @@ export function Featured() {
                     fallbackArt={FALLBACK_ART[i % FALLBACK_ART.length]}
                     sizes="(min-width: 1024px) 25vw, (min-width: 640px) 46vw, 78vw"
                     className="aspect-[4/5] w-full transition-transform duration-700 ease-out group-hover:-translate-y-1"
-                    artClassName="h-[46%] w-[46%]"
+                    artClassName="h-[58%] w-[58%]"
                   />
                   <p className="mt-5 text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-muted">{sectionName}</p>
                   <div className="mt-2 flex items-baseline justify-between gap-4">

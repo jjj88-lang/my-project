@@ -24,7 +24,7 @@ export function MediaFrame({
   sizes,
   preload = false,
   className = "",
-  artClassName = "h-[52%] w-[52%]",
+  artClassName = "h-[60%] w-[60%]",
 }: {
   media?: Media;
   fallbackArt?: ArtMotif;

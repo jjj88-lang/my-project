@@ -29,8 +29,14 @@ export function Header() {
           <dl className="grid gap-1">
             {hours.map((row) => (
               <div key={row.label} className="flex justify-between gap-4">
-                <dt>{row.label}</dt>
-                <dd className="nums text-right text-ink/85">{row.hours}</dd>
+                <dt className="whitespace-nowrap">{row.label}</dt>
+                <dd className="nums text-right text-ink/85">
+                  {row.intervals.map((interval) => (
+                    <span key={interval} className="block">
+                      {interval}
+                    </span>
+                  ))}
+                </dd>
               </div>
             ))}
           </dl>
