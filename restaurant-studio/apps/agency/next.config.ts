@@ -36,7 +36,9 @@ function pagesIn(dir: string, segments: string[] = []): string[] {
   });
 }
 
-const builtPages = pagesIn(path.join(process.cwd(), "src", "app"));
+// This file's own folder when it is known, so the answer does not depend on where the build was started.
+const appRoot = typeof __dirname === "string" ? __dirname : process.cwd();
+const builtPages = pagesIn(path.join(appRoot, "src", "app"));
 const everyPageExists = PLANNED_PAGES.every((route) => builtPages.includes(route));
 
 const nextConfig: NextConfig = {

@@ -1,0 +1,114 @@
+{
+  "city": "Anytown, KS",
+  "researched_on": "2026-01-15",
+  "method_notes": "FIXTURE FOR TESTS. Every business in this file is made up. No page was opened. Everything comes from search-result text.",
+  "qualified": [
+    {
+      "restaurant": "Sample Sushi House (also listed as Sample Sushi)",
+      "cuisine": "Japanese: sushi and hibachi",
+      "address": "12 Example St, Anytown, KS 66000",
+      "phone": "(785) 555-0111",
+      "public_email": "",
+      "contact_form_url": "",
+      "website_url": "",
+      "other_listings": ["https://listings.example.org/sample-sushi-house (directory listing)", "A delivery app listing"],
+      "owner_name_public": "",
+      "owner_name_source": "",
+      "independent_evidence": "One address in every listing and no parent brand seen.",
+      "pages_inspected": [],
+      "observations": [
+        {
+          "issue": "No website of its own",
+          "evidence": "Two searches returned only directory pages. No domain belonging to the restaurant appeared.",
+          "confidence": "verified-by-search"
+        },
+        {
+          "issue": "Hours differ across listings",
+          "evidence": "One listing shows 11 to 9 and another shows 11 to 10.",
+          "confidence": "needs-visual-check"
+        }
+      ],
+      "strengths": "Takes pickup orders through a delivery app and has many reviews.",
+      "suggested_improvement": "A one-page site with current hours, phone, a map and a readable menu.",
+      "proposed_package": "starter ($699 one-page site)",
+      "package_reason": "No site exists, and the main need is one page the restaurant controls.",
+      "fit_score": 4,
+      "fit_reason": "No own website in two searches and good evidence it is open.",
+      "best_contact_route": "in-person",
+      "personal_opening": "I'm a college student who has worked in restaurants, and I build simple websites for independent restaurants. When I looked up Sample Sushi House I found your listings on a delivery app, but I couldn't find a website of your own. Would it help to have one page you control with your hours and menu?",
+      "verify_before_outreach": "On your own phone, search for the restaurant and look for a website button. Confirm the restaurant is open and that (785) 555-0111 is right. The phone number comes from a directory."
+    },
+    {
+      "restaurant": "Sample Hibachi Grill",
+      "cuisine": "Japanese steakhouse: hibachi and sushi",
+      "address": "400 Sample Ave #2, Anytown, KS 66000",
+      "phone": "785-555-0122",
+      "public_email": "hello@sample-hibachi.example.com",
+      "contact_form_url": "",
+      "website_url": "https://sample-hibachi.example.com/",
+      "other_listings": ["https://listings.example.org/sample-hibachi-grill"],
+      "owner_name_public": "Pat Example",
+      "owner_name_source": "https://news.example.org/profile-of-sample-hibachi (a made-up local profile)",
+      "independent_evidence": "A single location on its own domain.",
+      "pages_inspected": ["https://sample-hibachi.example.com/ (search-result snippet only, not fetched)"],
+      "observations": [
+        {
+          "issue": "Menus are published as PDF files",
+          "evidence": "A search restricted to the domain returned two menu PDFs and no page listing dishes as text.",
+          "confidence": "verified-by-search"
+        },
+        {
+          "issue": "Catering is arranged by phone only",
+          "evidence": "The site mentions private parties but no request form appeared in the indexed text.",
+          "confidence": "needs-visual-check"
+        }
+      ],
+      "strengths": "Has its own domain with address, phone and hours on the home page.",
+      "suggested_improvement": "Turn the PDF menus into phone-readable text and add a short catering request form.",
+      "proposed_package": "premium + catering inquiry automation ($349 add-on)",
+      "package_reason": "Several menus and regular party bookings suit a few pages plus a request form.",
+      "fit_score": 5,
+      "fit_reason": "Top-priority cuisine with two concrete, checkable issues.",
+      "best_contact_route": "business email",
+      "personal_opening": "I've worked in restaurants and now build simple websites for independent ones. On your site I noticed that the menus are PDF files, which are hard to read on a phone. If it would be useful, I could show you what the same menus look like as normal web pages.",
+      "verify_before_outreach": "Open sample-hibachi.example.com on your phone. Confirm the menus still open as PDFs; check whether the site has a catering form; compare the hours on each page."
+    },
+    {
+      "restaurant": "Sample Noodle Bar",
+      "cuisine": "Chinese noodles",
+      "address": "9 Fixture Rd, Anytown, KS 66000",
+      "phone": "(785) 555-0133",
+      "public_email": "",
+      "contact_form_url": "",
+      "website_url": "https://sample-noodle.example.com/",
+      "other_listings": [],
+      "owner_name_public": "Someone Unsourced",
+      "owner_name_source": "",
+      "independent_evidence": "One address. A reviewer describes it as family run.",
+      "pages_inspected": ["https://sample-noodle.example.com/order"],
+      "observations": [
+        {
+          "issue": "Online ordering is advertised but appears not to be live",
+          "evidence": "The home page offers an order button while the order page says that online ordering is coming soon.",
+          "confidence": "needs-visual-check"
+        }
+      ],
+      "strengths": "Its own domain already covers address, phone, hours and a text menu.",
+      "suggested_improvement": "Switch the ordering page on, or change the button to a call link. A full rebuild is probably not needed.",
+      "proposed_package": "starter ($699 one-page site)",
+      "package_reason": "The smallest package is the only one that could apply, and it is probably more than they need.",
+      "fit_score": 2,
+      "fit_reason": "Thin evidence: one search only, and the site otherwise does its job.",
+      "best_contact_route": "in-person",
+      "personal_opening": "I'm a college student who has worked in restaurants, and I build websites for independent restaurants. On your website the home page has an order button, but the order page says online ordering is coming soon. I wanted to mention it in case you weren't aware.",
+      "verify_before_outreach": "Open the site on your phone and tap the order button. If ordering works, drop this record."
+    }
+  ],
+  "rejected": [
+    { "restaurant": "Sample Chain Buffet", "website_url": "https://chain.example.com/", "reason": "chain" },
+    { "restaurant": "Sample Closed Cafe (12 Fixture Rd)", "website_url": "", "reason": "closed: a listing showed it as permanently closed." },
+    { "restaurant": "Sample Good Site Thai", "website_url": "https://sample-good.example.com/", "reason": "site already good, as far as search shows: hours and a menu were visible." },
+    { "restaurant": "Sample Mystery Diner", "website_url": "", "reason": "could not inspect: the search budget ran out." },
+    { "restaurant": "Sample Unusual Case", "website_url": "", "reason": "moved away: an article says it left town." }
+  ]
+}

@@ -157,10 +157,12 @@ export function validateLead(raw: Record<string, unknown>): ValidationResult {
 
     if (!value) {
       if (field.required) {
+        // "What do you need?" is named without its question mark, so the sentence ends once.
+        const named = field.label.replace(/[?:]\s*$/, "");
         errors[field.name] =
           field.type === "select" || field.type === "radio"
-            ? `Please choose an option for "${field.label}".`
-            : `Please fill in "${field.label}".`;
+            ? `Please choose an option for “${named}”.`
+            : `Please fill in “${named}”.`;
       }
       continue;
     }

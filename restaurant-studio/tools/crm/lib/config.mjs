@@ -65,3 +65,15 @@ export function paymentSplit(price, pricing) {
   const deposit = Math.round(price * pricing.depositPercent) / 100;
   return { deposit, balance: Math.round((price - deposit) * 100) / 100 };
 }
+
+/** True when a path is inside the public repository but not under the ignored private folder. */
+export function isTrackedLocation(file, studioRoot = STUDIO_ROOT) {
+  const repoRoot = path.resolve(studioRoot, "..");
+  const privateRoot = path.join(studioRoot, "private");
+  const inside = (parent, child) => {
+    const relative = path.relative(parent, child);
+    return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative));
+  };
+  const target = path.resolve(file);
+  return inside(repoRoot, target) && !inside(privateRoot, target);
+}

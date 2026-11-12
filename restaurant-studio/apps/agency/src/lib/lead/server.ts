@@ -56,7 +56,16 @@ export function formSecret(env: Record<string, string | undefined> = process.env
  * the Google Sheets backend must be configured; otherwise the form refuses to send.
  */
 export function leadInbox(env: Record<string, string | undefined>, dataDir: string): InboxSettings {
-  return resolveInboxSettings({ sample: false, env, dataDir });
+  const settings = resolveInboxSettings({ sample: false, env, dataDir });
+  // The demo driver keeps nothing and emails nobody: it exists for the fictional sample sites.
+  // Here it would report a request as received and then drop it, so it counts as not set up.
+  if (settings.driver === "demo") {
+    return {
+      driver: "unconfigured",
+      reason: 'INBOX_DRIVER "demo" keeps nothing, so it cannot take real requests. Use "google", or "local" on your own machine.',
+    };
+  }
+  return settings;
 }
 
 function timeZoneFrom(env: Record<string, string | undefined>): string {

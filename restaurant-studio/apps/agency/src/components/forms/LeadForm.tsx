@@ -13,11 +13,25 @@ import {
   type LeadValues,
 } from "@/lib/lead/definition";
 
+/** Why a request could not be sent. Each has its own wording in FAILURES below. */
+type Failure = "failed" | "unconfigured" | "rateLimited";
+
 type Status =
   | { state: "idle" }
   | { state: "submitting" }
   | { state: "success"; id: string }
-  | { state: "error"; message: string };
+  | { state: "error"; failure: Failure };
+
+/**
+ * What the visitor is told. `retry` is the advice shown when the studio has no email or phone
+ * to offer instead. Each message says only what is certain: after a timeout nobody can tell
+ * whether a request arrived, so none of them claims that nothing was recorded.
+ */
+const FAILURES: Record<Failure, { message: string; retry?: string }> = {
+  failed: { message: "Your request did not go through just now.", retry: "Please try again in a little while." },
+  unconfigured: { message: "This form is not connected to an inbox yet, so it cannot take requests." },
+  rateLimited: { message: "That is a lot of requests in a short time. Please wait a few minutes and try again." },
+};
 
 type ApiResponse = { ok: boolean; id?: string; error?: string; fieldErrors?: FieldErrors };
 
@@ -118,15 +132,9 @@ export function LeadForm({
     document.getElementById(target)?.focus();
   }
 
-  const messages = {
-    failed: "Your request could not be sent just now, and nothing was recorded.",
-    unconfigured: "This form is not connected to an inbox yet, so it cannot take requests.",
-    rateLimited: "That is a lot of requests in a short time. Please wait a few minutes and try again.",
-  };
-
   async function send(attempt: number): Promise<void> {
     if (!token.current && !(await fetchToken())) {
-      setStatus({ state: "error", message: messages.failed });
+      setStatus({ state: "error", failure: "failed" });
       return;
     }
     const age = Date.now() - token.current!.at;
@@ -142,7 +150,7 @@ export function LeadForm({
       });
       data = (await res.json()) as ApiResponse;
     } catch {
-      setStatus({ state: "error", message: messages.failed });
+      setStatus({ state: "error", failure: "failed" });
       return;
     }
 
@@ -165,14 +173,14 @@ export function LeadForm({
     }
     if (data.error === "unconfigured") {
       setAccepting(false);
-      setStatus({ state: "error", message: messages.unconfigured });
+      setStatus({ state: "error", failure: "unconfigured" });
       return;
     }
     if (res.status === 429) {
-      setStatus({ state: "error", message: messages.rateLimited });
+      setStatus({ state: "error", failure: "rateLimited" });
       return;
     }
-    setStatus({ state: "error", message: messages.failed });
+    setStatus({ state: "error", failure: "failed" });
   }
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -210,7 +218,7 @@ export function LeadForm({
         </span>
         <h2 className="display display-md mt-5">Your request is in.</h2>
         <p className="mt-4 max-w-[52ch] text-ink-soft">
-          Thank you. A note is on its way to your email so you know it arrived. I read every request myself and
+          Thank you. You should get a short email confirming that it arrived. I read every request myself and
           reply personally, usually {replyTime}. Nothing is booked or owed at this point.
         </p>
         <p className="mt-5 font-mono text-[0.9rem]">
@@ -235,7 +243,7 @@ export function LeadForm({
 
       {accepting === false && status.state !== "error" && (
         <div role="status" className="mt-5 rounded-lg border-2 border-danger bg-card p-4 text-[0.98rem]">
-          <ContactNotice message={messages.unconfigured} email={email} phone={phone} phoneHref={phoneHref} />
+          <ContactNotice failure="unconfigured" email={email} phone={phone} phoneHref={phoneHref} />
         </div>
       )}
 
@@ -254,7 +262,7 @@ export function LeadForm({
           data-lead-status="error"
           className="mt-5 rounded-lg border-2 border-danger bg-card p-4 text-[0.98rem] outline-none"
         >
-          <ContactNotice message={status.message} email={email} phone={phone} phoneHref={phoneHref} />
+          <ContactNotice failure={status.failure} email={email} phone={phone} phoneHref={phoneHref} />
         </div>
       )}
 
@@ -308,16 +316,17 @@ export function LeadForm({
 
 /** A notice that the form could not send, followed by the studio's email and phone when they are known. */
 function ContactNotice({
-  message,
+  failure,
   email,
   phone,
   phoneHref,
 }: {
-  message: string;
+  failure: Failure;
   email?: string;
   phone?: string;
   phoneHref?: string;
 }) {
+  const { message, retry } = FAILURES[failure];
   const direct = Boolean(email || (phone && phoneHref));
   return (
     <>
@@ -338,9 +347,9 @@ function ContactNotice({
             )}
           </p>
         </>
-      ) : (
-        <p className="mt-2">Please try again in a little while.</p>
-      )}
+      ) : retry ? (
+        <p className="mt-2">{retry}</p>
+      ) : null}
     </>
   );
 }

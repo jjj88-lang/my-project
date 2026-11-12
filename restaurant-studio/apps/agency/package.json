@@ -13,7 +13,8 @@
     "typecheck": "npm run prepare-site --silent && next typegen && tsc --noEmit",
     "test": "npm run prepare-site --silent && vitest run",
     "preflight": "tsx scripts/preflight.ts",
-    "capture": "node scripts/capture-work.cjs"
+    "capture": "node scripts/capture-work.cjs",
+    "review": "node scripts/review.cjs"
   },
   "dependencies": {
     "next": "16.4.6",
