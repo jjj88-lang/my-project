@@ -16,7 +16,7 @@ import type { StaticImageData } from "next/image";
 
 import type { DemoKey } from "@/lib/demos";
 
-const files = import.meta.glob<{ default: StaticImageData }>("*.png", {
+const files = import.meta.glob<{ default: StaticImageData }>("./*.png", {
   base: "../../../public/work",
   eager: true,
 });

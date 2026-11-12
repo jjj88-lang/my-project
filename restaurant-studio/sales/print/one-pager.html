@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sidework Studio leave-behind</title>
+<!--
+  Printable one-page leave-behind. US Letter, prints in color or black and white.
+  Prices come from config/pricing.json; update them here if that file changes.
+  Before printing: replace every [bracketed placeholder] with values from config/studio.json
+  (founder name, email, phone) and paste a QR code image to the demo where marked.
+  Print from a browser: Letter, margins "Default" or "None", scale 100%, background graphics on.
+-->
+<style>
+  @page { size: Letter; margin: 0.5in; }
+  :root { --ink: #1c1a17; --muted: #55504a; --line: #c9c2b8; --accent: #8a3b12; --paper: #ffffff; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--paper); color: var(--ink); }
+  body { font: 10.5pt/1.4 Georgia, "Times New Roman", serif; }
+  .page { width: 7.5in; min-height: 10in; margin: 0 auto; padding: 0; display: flex; flex-direction: column; gap: 0.16in; }
+  @media screen { body { padding: 0.5in 16px; background: #eeeae4; } .page { background: var(--paper); padding: 0.5in; width: 8.5in; max-width: 100%; box-shadow: 0 1px 4px rgba(0,0,0,.15); } }
+  h1, h2, h3 { font-family: "Helvetica Neue", Arial, sans-serif; margin: 0; line-height: 1.15; }
+  header { border-bottom: 2pt solid var(--ink); padding-bottom: 0.1in; display: flex; justify-content: space-between; align-items: flex-end; gap: 0.2in; }
+  header h1 { font-size: 22pt; letter-spacing: 0.01em; }
+  header p { margin: 2pt 0 0; color: var(--muted); }
+  .lead { font-size: 12pt; margin: 0; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.14in; }
+  .card { border: 1pt solid var(--line); border-radius: 4pt; padding: 0.12in 0.14in; break-inside: avoid; }
+  .card h2 { font-size: 11.5pt; display: flex; justify-content: space-between; gap: 8pt; }
+  .price { color: var(--accent); white-space: nowrap; }
+  .card p { margin: 3pt 0 4pt; color: var(--muted); font-size: 9.5pt; }
+  ul { margin: 0; padding-left: 1.1em; }
+  li { margin: 1pt 0; font-size: 9.5pt; }
+  .terms { border-top: 1pt solid var(--line); border-bottom: 1pt solid var(--line); padding: 0.08in 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.14in; }
+  .terms h3 { font-size: 9.5pt; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2pt; }
+  .terms p { margin: 0; font-size: 9.5pt; }
+  .not { font-size: 9pt; color: var(--muted); margin: 0; }
+  footer { margin-top: auto; display: grid; grid-template-columns: 1fr 1.45in; gap: 0.2in; align-items: center; border-top: 2pt solid var(--ink); padding-top: 0.12in; }
+  .contact p { margin: 0 0 3pt; }
+  .fill { display: inline-block; min-width: 2.6in; border-bottom: 1pt solid var(--ink); }
+  .qr { width: 1.45in; height: 1.45in; border: 1.5pt dashed var(--ink); display: flex; align-items: center; justify-content: center; text-align: center; font: 8pt/1.3 Arial, sans-serif; padding: 6pt; }
+  .small { font-size: 8.5pt; color: var(--muted); }
+  @media print { .page { width: auto; min-height: 10in; } }
+  @media (max-width: 640px) { .grid, .terms, footer { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } }
+</style>
+</head>
+<body>
+<main class="page">
+  <header>
+    <div>
+      <h1>Sidework Studio</h1>
+      <p>Websites for independent restaurants</p>
+    </div>
+    <p>Topeka, Kansas · Ithaca, New York</p>
+  </header>
+
+  <p class="lead">A clear, phone-friendly website with your real menu, your hours and one-tap buttons to call, get directions, order or reserve. Built by someone who has worked in restaurants, kept up to date if you want, and always yours to own.</p>
+
+  <section class="grid" aria-label="Packages">
+    <div class="card">
+      <h2>Starter Website <span class="price">$699</span></h2>
+      <p>One page with everything a guest looks for.</p>
+      <ul>
+        <li>Full menu as real text with prices (never a PDF)</li>
+        <li>Hours, address, tap-to-call and Get Directions</li>
+        <li>Buttons to the ordering and reservation systems you already use</li>
+        <li>"Open now" indicator and holiday hours</li>
+        <li>Connected to your own domain name</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Premium Website <span class="price">$999</span></h2>
+      <p>Multi-page, for restaurants with more to say.</p>
+      <ul>
+        <li>Everything in Starter</li>
+        <li>Home, Menu, Gallery, Our Story, Catering and Contact pages</li>
+        <li>Menu with jump-to-section and dietary labels</li>
+        <li>Photo gallery and contact form</li>
+        <li>Announcement bar for specials and holiday hours</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Catering Inquiry Automation <span class="price">+$349</span></h2>
+      <p>Add-on for either website.</p>
+      <ul>
+        <li>Each catering request saved to a Google Sheet you own</li>
+        <li>An email to you the moment a request arrives</li>
+        <li>A note to the customer that it arrived. It never confirms a date, availability or price.</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h2>Monthly Maintenance <span class="price">$59/mo</span></h2>
+      <p>Optional. Month to month, 30 days' notice to cancel.</p>
+      <ul>
+        <li>Hosting with https</li>
+        <li>Up to 60 minutes of small changes a month: menu, prices, hours, photos</li>
+        <li>Updates and monitoring</li>
+        <li>Reply within two business days</li>
+      </ul>
+    </div>
+  </section>
+
+  <section class="terms" aria-label="Terms">
+    <div><h3>You own it</h3><p>Your domain is registered in your name and your account. Your content and listings stay yours.</p></div>
+    <div><h3>Simple payment</h3><p>50% to start, 50% when you approve the site, before launch. No card fees added.</p></div>
+    <div><h3>Revisions and fixes</h3><p>Two rounds of revisions and a 14-day fix window after launch. Extra work $60/hour, always agreed first.</p></div>
+  </section>
+
+  <p class="not"><strong>Not included:</strong> your domain's yearly fee (about $12 to $20, paid by you to the registrar), professional photography or logo design, the ordering or reservation system itself, advertising or social media management, business email accounts.</p>
+
+  <footer>
+    <div class="contact">
+      <p><strong>Name:</strong> <span class="fill">[Founder name]</span></p>
+      <p><strong>Email:</strong> <span class="fill">[Studio email]</span></p>
+      <p><strong>Phone:</strong> <span class="fill">[Studio phone]</span></p>
+      <p><strong>Web:</strong> <span class="fill">[Studio website]</span></p>
+      <p class="small">The sample sites are fictional restaurants made to show the work. Happy to show you on my phone.</p>
+    </div>
+    <div class="qr">[QR code to the demo site goes here]<br>1.4 x 1.4 in</div>
+  </footer>
+</main>
+</body>
+</html>

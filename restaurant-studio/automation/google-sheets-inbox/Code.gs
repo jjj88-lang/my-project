@@ -647,7 +647,7 @@ function invalid_(what) {
 
 /** One line of text of a sensible length, with no control characters or line breaks. */
 function isLine_(value, min, max) {
-  return typeof value === "string" && value.length >= min && value.length <= max && !/[\u0000-\u001F\u007F  ]/.test(value);
+  return typeof value === "string" && value.length >= min && value.length <= max && !/[\u0000-\u001F\u007F\u2028\u2029]/.test(value);
 }
 
 /** A column heading: one line, no spaces at the ends, and nothing a spreadsheet reads as a formula. */
@@ -681,7 +681,7 @@ function isSendable_(value) {
  */
 function isAckSummary_(value) {
   return typeof value === "string" && value.length <= CONFIG.LIMITS.ackSummaryChars &&
-    !/[\u0000-\u001F\u007F  \/\\@.<>\[\]{}=&%#?!";_*~^|$+`]/.test(value);
+    !/[\u0000-\u001F\u007F\u2028\u2029\/\\@.<>\[\]{}=&%#?!";_*~^|$+`]/.test(value);
 }
 
 function isRecord_(value) {
@@ -1061,7 +1061,8 @@ function ownerEmail_(s, problem, replyWorks) {
   var lines = [s.kindLabel + " received " + s.submittedAtLocal + " through " + s.source + ".", ""];
   for (var i = 0; i < s.fields.length; i++) {
     var value = typed_(s.fields[i].value);
-    if (value !== "") lines.push(s.fields[i].label + ": " + value);
+    // "Anything else we should know?" becomes "Anything else we should know: ...", as in messages.ts.
+    if (value !== "") lines.push(s.fields[i].label.replace(/[?:]\s*$/, "") + ": " + value);
   }
   lines.push("");
   lines.push(replyWorks
@@ -1237,10 +1238,10 @@ function notNamePattern_() {
   if (NOT_NAME_PATTERN_ === null) {
     try {
       // Everything that is not a letter in any alphabet, an accent, an apostrophe or a hyphen.
-      NOT_NAME_PATTERN_ = new RegExp("[^\\p{L}\\p{M}'’-]", "gu");
+      NOT_NAME_PATTERN_ = new RegExp("[^\\p{L}\\p{M}'\u2019-]", "gu");
     } catch (err) {
       // For a runtime without Unicode classes: remove digits, punctuation, symbols and emoji.
-      NOT_NAME_PATTERN_ = /[\u0000-&(-,.-@[-`{-¿×÷ -‘‚-⯿\uD800-\uDFFF]/g;
+      NOT_NAME_PATTERN_ = /[\u0000-\u0026\u0028-\u002C\u002E-\u0040\u005B-\u0060\u007B-\u00BF\u00D7\u00F7\u2000-\u2018\u201A-\u2BFF\uD800-\uDFFF]/g;
     }
   }
   return NOT_NAME_PATTERN_;
@@ -1258,7 +1259,7 @@ function text_(value) {
 }
 
 function oneLine_(value) {
-  return text_(value).replace(/[\u0000-\u001F\u007F  ]+/g, " ").trim();
+  return text_(value).replace(/[\u0000-\u001F\u007F\u2028\u2029]+/g, " ").trim();
 }
 
 function refuse_(code, message) {
