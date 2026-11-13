@@ -80,8 +80,8 @@ header.top{display:flex;align-items:center;justify-content:space-between;gap:8px
 
 nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:var(--surface);border-top:1px solid var(--line);
   padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
-nav.tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
-nav.tabs button{border:0;background:none;padding:8px 4px;border-radius:10px;font-family:var(--display);font-size:17px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+nav.tabs .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+nav.tabs button{border:0;background:none;padding:8px 2px;border-radius:10px;font-family:var(--display);font-size:16px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
 nav.tabs button[aria-current="page"]{color:var(--accent);background:var(--track)}
 
 .sheet{position:fixed;inset:0;z-index:40;display:flex;align-items:flex-end;justify-content:center;background:rgba(8,12,18,.55)}
@@ -115,6 +115,13 @@ svg.chart text{font:500 11px var(--body);fill:var(--muted)}
 .rules{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
 .rules b{font-weight:600}
 .coach{white-space:pre-wrap;font-size:15px}
+.msgs{display:flex;flex-direction:column;gap:10px}
+.bub{max-width:88%;padding:10px 14px;border-radius:14px;white-space:pre-wrap;overflow-wrap:anywhere;background:var(--surface);border:1px solid var(--line);align-self:flex-start}
+.bub.me{align-self:flex-end;background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.composer{position:sticky;bottom:calc(72px + env(safe-area-inset-bottom,0px));display:flex;gap:8px;align-items:flex-end;background:var(--bg);padding-top:8px}
+.composer textarea{min-height:48px;max-height:140px;background:var(--surface)}
+.sugg{display:flex;flex-direction:column;gap:8px}
+.sugg button{text-align:left;justify-content:flex-start;font-weight:500}
 </style>
 
 <div class="wrap">
@@ -126,6 +133,7 @@ svg.chart text{font:500 11px var(--body);fill:var(--muted)}
 </div>
 <nav class="tabs" aria-label="Sections"><div class="in">
   <button data-act="tab" data-tab="today">Today</button>
+  <button data-act="tab" data-tab="ask">Ask</button>
   <button data-act="tab" data-tab="progress">Progress</button>
   <button data-act="tab" data-tab="plan">Plan</button>
 </div></nav>
@@ -160,7 +168,7 @@ const IC={
 
 /* ---------- state + storage ---------- */
 const LS='cutline.v1';
-const PROFILE0={sex:null,age:null,heightIn:66,weight:150,activity:1.2,rate:1,bf:null,waist:null,neck:null,hip:null,adj:0,start:today(),u:0};
+const PROFILE0={sex:null,age:18,heightIn:66,weight:150,activity:1.2,rate:1,bf:null,waist:null,neck:null,hip:null,adj:0,start:today(),u:0};
 const S={profile:clone(PROFILE0),days:{},tab:'today',date:today()};
 let sync='local'; // local | loading | synced | error
 try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j&&j.profile){S.profile=Object.assign(clone(PROFILE0),j.profile);S.days=j.days||{};}}catch(e){}
@@ -219,11 +227,11 @@ async function initDb(){
 }
 
 /* ---------- AI ---------- */
-let AI=null,aiImages=false;
+let AI=null,aiImages=false,aiTools=false;
 const aiReady=(async()=>{
   const C=window.claude;if(!C||!C.use)return;
   try{AI=await C.use('sample');}catch(e){AI=null;}
-  if(AI){try{const l=await AI.limits();aiImages=!!(l&&l.images);}catch(e){aiImages=false;}}
+  if(AI){try{const l=await AI.limits();aiImages=!!(l&&l.images);aiTools=!!(l&&l.tools);}catch(e){aiImages=false;}}
 })();
 function aiMsg(e){
   const c=e&&e.code;
@@ -257,9 +265,9 @@ async function prepImage(file,max){
 function weights(){return Object.keys(S.days).filter(k=>num(S.days[k].weight)!=null).sort().map(k=>({d:k,w:+S.days[k].weight}));}
 function trend(){const ws=weights();let t=null;return ws.map(x=>{t=t==null?x.w:t+.25*(x.w-t);return {d:x.d,w:x.w,t};});}
 function curWeight(){const t=trend();return t.length?t[t.length-1].t:(num(S.profile.weight)||150);}
-const setupDone=()=>!!(S.profile.sex&&S.profile.age);
+const setupDone=()=>!!S.profile.sex;
 function bmr(){ // Mifflin-St Jeor
-  const p=S.profile,kg=curWeight()*.45359,cm=(num(p.heightIn)||66)*2.54,age=num(p.age)||25;
+  const p=S.profile,kg=curWeight()*.45359,cm=(num(p.heightIn)||66)*2.54,age=num(p.age)||18;
   return 10*kg+6.25*cm-5*age+(p.sex==='f'?-161:5);
 }
 const minor=()=>num(S.profile.age)!=null&&S.profile.age<18;
@@ -317,17 +325,15 @@ document.addEventListener('focusout',()=>{if(needRender){needRender=false;setTim
 function render(){
   document.querySelectorAll('nav.tabs button').forEach(b=>{if(b.dataset.tab===S.tab)b.setAttribute('aria-current','page');else b.removeAttribute('aria-current');});
   const st=streak(),chip=$('#streak');chip.hidden=st<2;chip.textContent=st+'-day streak';
-  $('#view').innerHTML=S.tab==='today'?vToday():S.tab==='progress'?vProgress():vPlan();
+  $('#view').innerHTML=S.tab==='today'?vToday():S.tab==='ask'?vAsk():S.tab==='progress'?vProgress():vPlan();
 }
 function setupCard(){
   const p=S.profile;
-  return `<section class="card stack"><h2>Finish your setup</h2>
-  <p class="small muted" style="margin:0">Height 5'6" and 150 lb are already in. Two more details set your calorie budget. Until then the numbers below assume a 25-year-old man.</p>
+  return `<section class="card stack"><h2>One thing to set</h2>
+  <p class="small muted" style="margin:0">Height 5'6", 150 lb and age 18 are already in. Pick one below to set your calorie budget. Until then the numbers assume male.</p>
   <div class="seg" role="group" aria-label="Sex">
     <button data-act="pf" data-k="sex" data-v="m" aria-pressed="${p.sex==='m'}">Male</button>
-    <button data-act="pf" data-k="sex" data-v="f" aria-pressed="${p.sex==='f'}">Female</button></div>
-  <div class="two"><label class="f">Age<input class="in" id="su-age" inputmode="numeric" value="${esc(p.age||'')}" placeholder="e.g. 19"></label>
-  <button class="btn primary" data-act="setup-save" style="align-self:end">Save</button></div></section>`;
+    <button data-act="pf" data-k="sex" data-v="f" aria-pressed="${p.sex==='f'}">Female</button></div></section>`;
 }
 function vToday(){
   const d=S.date,day=getDay(d),t=dayTot(d),tg=target(d),left=tg.kcal-t.kcal,m=macros(tg.kcal);
@@ -485,6 +491,59 @@ function vPlan(){
   <section class="card stack"><h3>Your data</h3><p class="small muted" style="margin:0">${syncTxt}</p></section>`;
 }
 
+function weekLines(){
+    const lines=[];for(let i=6;i>=0;i--){const d=addDays(today(),-i),t=dayTot(d),g=target(d),day=getDay(d);
+      lines.push(d+': ate '+(t.kcal?Math.round(t.kcal)+' kcal, protein '+Math.round(t.p)+' g':'not logged')+'; budget '+Math.round(g.kcal)+'; exercise '+Math.round(g.burn.ex)+' kcal'+(day.ex.length?' ('+day.ex.map(e=>e.type+(e.miles?' '+e.miles+' mi':'')).join(', ')+')':'')+(num(day.weight)!=null?'; weight '+day.weight+' lb':''));}
+  return lines;
+}
+
+/* ---------- ask anything ---------- */
+let chat=[],asking=false;
+try{const c=JSON.parse(localStorage.getItem('cutline.chat')||'[]');if(Array.isArray(c))chat=c.filter(m=>m&&m.content&&(m.role==='user'||m.role==='assistant')).slice(-40);}catch(e){}
+function saveChat(){try{localStorage.setItem('cutline.chat',JSON.stringify(chat.slice(-40)))}catch(e){}}
+function askContext(){
+  const p=S.profile,bf=bodyFat(),d=today(),t=dayTot(d),g=target(d),m=macros(g.kcal),day=getDay(d);
+  return 'You are the assistant inside Cutline, my calorie and training tracker. Answer whatever I ask, on any topic, directly and briefly in plain text with no markdown. For food, training and fat-loss questions use my numbers below and be specific. Never advise eating under '+floorK()+' kcal a day. Only call a logging tool when I clearly say I ate, weighed or ran something and want it recorded; after logging, say what you logged in one line.\n'
+   +'About me: '+(p.sex==='f'?'female':p.sex==='m'?'male':'sex not set')+', age '+(p.age||18)+', '+Math.floor(p.heightIn/12)+'ft '+Math.round(p.heightIn%12)+'in, trend weight '+curWeight().toFixed(1)+' lb'+(bf?', about '+bf.v.toFixed(0)+'% body fat':'')+'. I run daily and want visible abs. Pace goal '+p.rate+' lb/week.\n'
+   +'Today ('+d+', '+nowT()+'): budget '+Math.round(g.kcal)+' kcal, eaten '+Math.round(t.kcal)+', left '+Math.round(g.kcal-t.kcal)+'. Protein '+Math.round(t.p)+' of '+m.p+' g, carbs '+Math.round(t.c)+' of '+m.c+' g, fat '+Math.round(t.f)+' of '+m.f+' g. Meals: '+(day.meals.map(x=>x.title+' '+Math.round(mealTot(x).kcal)).join('; ')||'none yet')+'.\n'
+   +'Last 7 days:\n'+weekLines().join('\n');
+}
+const ASK_TOOLS=[
+  {name:'log_food',description:'Add something I ate or drank to today\'s food log. Estimate calories and macros yourself for the amount I gave.',
+   inputSchema:{type:'object',properties:{title:{type:'string'},kcal:{type:'number'},protein_g:{type:'number'},carbs_g:{type:'number'},fat_g:{type:'number'}},required:['title','kcal']},
+   execute(i){const k=pos(i&&i.kcal);if(!k||k>6000)throw new Error('kcal must be between 1 and 6000');const name=String(i.title||'Food').slice(0,60);
+     getDay(today(),true).meals.push({id:uid(),t:nowT(),title:name,src:'chat',items:[{name,portion:'',kcal:Math.round(k),p:Math.round(pos(i.protein_g)),c:Math.round(pos(i.carbs_g)),f:Math.round(pos(i.fat_g))}]});
+     touchDay(today());return {logged:name,kcal:Math.round(k),left_today:Math.round(target(today()).kcal-dayTot(today()).kcal)};}},
+  {name:'log_weight',description:'Record my body weight for today, in pounds.',inputSchema:{type:'object',properties:{pounds:{type:'number'}},required:['pounds']},
+   execute(i){const w=num(i&&i.pounds);if(!w||w<60||w>500)throw new Error('pounds must be between 60 and 500');getDay(today(),true).weight=Math.round(w*10)/10;touchDay(today());return {logged_lb:Math.round(w*10)/10};}},
+  {name:'log_run',description:'Record a run I did today. Give miles, and minutes if I said how long.',inputSchema:{type:'object',properties:{miles:{type:'number'},minutes:{type:'number'}},required:['miles']},
+   execute(i){const mi=num(i&&i.miles),mins=num(i&&i.minutes);if(!mi||mi>60)throw new Error('miles must be between 0 and 60');const k=exKcal('Run',mi,mins);
+     getDay(today(),true).ex.push({id:uid(),type:'Run',miles:Math.round(mi*100)/100,mins:mins?Math.round(mins):null,kcal:k});touchDay(today());return {logged_miles:mi,kcal_added_to_budget:k};}}
+];
+function vAsk(){
+  const sugg=['What should I eat for dinner with what I have left today?','Give me a 3-day lifting plan that fits around daily runs','I had 2 scrambled eggs and toast, log it','How long until I see abs at my pace?'];
+  return `<div class="row"><h2 class="grow">Ask anything</h2>${chat.length?`<button class="btn sm" data-act="ask-clear">Clear</button>`:''}</div>
+  ${chat.length?`<div class="msgs">${chat.map((m,i)=>`<div class="bub ${m.role==='user'?'me':''}"${asking&&i===chat.length-1?' id="ask-live"':''}>${esc(m.content||(asking&&i===chat.length-1?'Thinking…':''))}</div>`).join('')}</div>`
+   :`<p class="muted" style="margin:0">Type any question. Claude sees your budget, what you ate today and your last week, so answers use your numbers. You can also just say what you ate, weighed or ran and it gets logged.</p>
+     <div class="sugg">${sugg.map(q=>`<button class="btn" data-act="ask-send" data-q="${esc(q)}">${esc(q)}</button>`).join('')}</div>`}
+  <div class="composer"><textarea class="in" id="ask-in" rows="1" placeholder="Ask or tell me anything" aria-label="Your message"></textarea><button class="btn primary" data-act="ask-send" id="ask-btn" ${asking?'disabled':''}>Send</button></div>`;
+}
+const scrollEnd=()=>window.scrollTo(0,document.documentElement.scrollHeight);
+async function askSend(q){
+  q=(q||'').trim().slice(0,2000);if(!q||asking)return;
+  await aiReady;if(!AI){toast('Asking needs this page open in Claude.');return;}
+  const last={role:'assistant',content:''};chat.push({role:'user',content:q},last);asking=true;render();scrollEnd();
+  const hist=chat.slice(0,-1).slice(-17);while(hist.length&&hist[0].role!=='user')hist.shift();
+  const msgs=hist.map((m,i)=>({role:m.role,content:i===0?askContext()+'\n\nMy message: '+m.content:m.content}));
+  const opts={cache:false,onText:x=>{last.content=x.text;const b=$('#ask-live');if(b)b.textContent=x.text||'Thinking…';}};
+  if(aiTools)opts.tools=ASK_TOOLS;
+  let failed='';
+  try{const r=await AI(msgs,opts);last.content=(r&&r.text)||last.content||'Done.';}
+  catch(e){if(e&&e.text)last.content=e.text;else{chat.splice(chat.length-2,2);failed=q;}toast(aiMsg(e));}
+  asking=false;saveChat();render();
+  if(failed){const ta=$('#ask-in');if(ta)ta.value=failed;}else scrollEnd();
+}
+
 /* ---------- sheets ---------- */
 let draft=null,aiAbort=null;
 function openSheet(html){$('#panel').innerHTML=html;$('#sheet').hidden=false;}
@@ -604,7 +663,6 @@ const A={
   'health-sheet'(){healthSheet();},
   'weight-sheet'(){weightSheet();},
   pf(el){const k=el.dataset.k,v=el.dataset.v;S.profile[k]=k==='sex'?v:+v;saveProfile();render();},
-  'setup-save'(){const a=num($('#su-age').value);if(!S.profile.sex){toast('Pick male or female first.');return;}if(!a||a<13||a>90){toast('Enter your age.');return;}S.profile.age=Math.round(a);saveProfile();render();toast('Budget set.');},
   async describe(){
     const txt=$('#desc').value.trim();if(!txt){toast('Describe what you ate first.');return;}
     await aiReady;if(!AI){toast('Estimates need this page open in Claude. Enter the numbers below instead.');return;}
@@ -662,10 +720,11 @@ const A={
   'w-save'(){const w=num($('#w-in').value);if(!w||w<60||w>500){toast('Enter your weight in pounds.');return;}getDay(S.date,true).weight=Math.round(w*10)/10;closeSheet();touchDay(S.date);},
   'w-clear'(){getDay(S.date,true).weight=null;closeSheet();touchDay(S.date);},
   'apply-adj'(el){S.profile.adj=+el.dataset.v||0;saveProfile();render();toast('Budget now uses your measured burn.');},
+  'ask-send'(el){const ta=$('#ask-in');askSend(el.dataset.q||(ta?ta.value:''));},
+  'ask-clear'(el){if(asking)return;if(!el.dataset.sure){el.dataset.sure=1;el.textContent='Tap again to clear';return;}chat=[];saveChat();render();},
   async coach(el){
     await aiReady;if(!AI){toast('The coach needs this page open in Claude.');return;}
-    const lines=[];for(let i=6;i>=0;i--){const d=addDays(today(),-i),t=dayTot(d),g=target(d),day=getDay(d);
-      lines.push(d+': ate '+(t.kcal?Math.round(t.kcal)+' kcal, protein '+Math.round(t.p)+' g':'not logged')+'; budget '+Math.round(g.kcal)+'; exercise '+Math.round(g.burn.ex)+' kcal'+(day.ex.length?' ('+day.ex.map(e=>e.type+(e.miles?' '+e.miles+' mi':'')).join(', ')+')':'')+(num(day.weight)!=null?'; weight '+day.weight+' lb':''));}
+    const lines=weekLines();
     const p=S.profile,bf=bodyFat();
     el.disabled=true;const out=$('#coach');out.textContent='Thinking…';
     try{
@@ -696,7 +755,7 @@ document.addEventListener('change',e=>{
   const pn=$('#plan-nums');if(pn)pn.innerHTML=planNumbers();
   const ab=$('#abs');if(ab)ab.innerHTML=absCard();
 });
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
+document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='ask-in'&&matchMedia('(pointer:fine)').matches){e.preventDefault();askSend(e.target.value);return;}if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
 
 window.__cutline={S,bmr,target,exKcal,macros,measured,bodyFat};
 render();
