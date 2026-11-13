@@ -163,6 +163,7 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const clone=o=>JSON.parse(JSON.stringify(o));
 const IC={
   cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>',
+  up:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5M4 16v4h16v-4"/></svg>',
   food:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 3v7a2 2 0 0 0 4 0V3M8 12v9M17 3c-2 2-3 5-3 8h3zm0 8v10"/></svg>',
   run:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="15" cy="4.5" r="1.8"/><path d="M6 11l4-3 4 1 2 4 3 1M10 8l-1 6 4 3 1 5M9 14l-2 4-4 1"/></svg>'
 };
@@ -364,7 +365,7 @@ function vToday(){
     ${x.thumb?`<img class="thumb" alt="" src="${esc(x.thumb)}">`:`<span class="thumb ph">${IC.food}</span>`}
     <span class="grow"><span class="t">${esc(x.title||'Meal')}</span><br><span class="small muted">${esc(x.t||'')} · P ${fmt(mt.p)} · C ${fmt(mt.c)} · F ${fmt(mt.f)}</span></span>
     <span class="k">${fmt(mt.kcal)}</span></button>`;}).join('')
-    :`<p class="empty">Nothing logged ${d===today()?'yet today':'for this day'}. Snap a photo of your plate and the calories fill in here.</p>`;
+    :`<p class="empty">Nothing logged ${d===today()?'yet today':'for this day'}. Take a photo of your plate, or upload a picture you already have, and the calories fill in here.</p>`;
   const hasH=tg.burn.src==='health';
   const exs=(hasH?`<div class="item"><span class="thumb ph">${IC.run}</span><span class="grow"><span class="t">Apple Health active energy</span><br><span class="small muted">${day.health.steps?fmt(day.health.steps)+' steps · ':''}covers all movement today</span></span><span class="k">${fmt(day.health.active)}</span></div>`:'')
     +day.ex.map(e=>`<button class="item" data-act="ex-edit" data-id="${esc(e.id)}"><span class="thumb ph">${IC.run}</span>
@@ -392,7 +393,8 @@ function vToday(){
     <div class="macro"><div class="label">Carbs</div>${bar(t.c,m.c,'var(--burn)')}<span class="num">${fmt(t.c)}</span><span class="small muted"> / ${m.c} g</span></div>
     <div class="macro"><div class="label">Fat</div>${bar(t.f,m.f,'var(--fat)')}<span class="num">${fmt(t.f)}</span><span class="small muted"> / ${m.f} g</span></div>
   </section>
-  <div class="actions"><button class="btn primary" data-act="snap">${IC.cam} Snap a meal</button><button class="btn" data-act="search-sheet">Search foods</button></div>
+  <div class="two"><button class="btn primary" data-act="snap">${IC.cam} Take a photo</button><button class="btn primary" data-act="lib">${IC.up} Upload a picture</button></div>
+  <div class="two"><button class="btn" data-act="food-sheet">Type it in</button><button class="btn" data-act="search-sheet">Search foods</button></div>
   <section class="card"><div class="sechead"><h3>Food</h3><span class="num" style="font-size:20px">${fmt(t.kcal)} kcal</span></div><div class="list">${meals}</div></section>
   <section class="card"><div class="sechead"><h3>Exercise</h3><span class="num" style="font-size:20px;color:var(--burn)">${fmt(tg.burn.ex)} kcal</span></div>
     <div class="list">${exs||`<p class="empty">No run logged. Add it and your budget goes up by what you burned.</p>`}</div>
@@ -935,6 +937,10 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='ask-in'&&matchMedia('(pointer:fine)').matches){e.preventDefault();askSend(e.target.value);return;}if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
 
+// a pasted or dropped picture goes straight to the estimator
+document.addEventListener('paste',e=>{const f=Array.from((e.clipboardData&&e.clipboardData.files)||[]).find(x=>/^image\//.test(x.type));if(f){e.preventDefault();adding=!!(pre&&adding);analyze(f,'food');}});
+document.addEventListener('dragover',e=>{e.preventDefault();});
+document.addEventListener('drop',e=>{e.preventDefault();const f=Array.from((e.dataTransfer&&e.dataTransfer.files)||[]).find(x=>/^image\//.test(x.type));if(f){adding=false;analyze(f,'food');}});
 window.__cutline={searchGeneric,searchBranded,dbInit,S,bmr,target,exKcal,macros,measured,bodyFat};
 render();
 initDb();
