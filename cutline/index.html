@@ -97,6 +97,7 @@ textarea.in{min-height:76px;resize:vertical}
 .seg button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .ritem{display:grid;grid-template-columns:1fr auto;gap:6px 10px;padding:10px 0;border-top:1px solid var(--line)}
 .ritem:first-child{border-top:0}
+.kin{width:88px;min-height:42px;padding:4px 10px;text-align:right;font-family:var(--display);font-size:22px;font-weight:600}
 .step{display:flex;align-items:center;gap:6px}
 .step button{width:36px;height:36px;border-radius:9px;border:1px solid var(--line);background:var(--bg);font-size:18px;font-weight:600}
 .step .m{min-width:44px;text-align:center;font-weight:600;font-variant-numeric:tabular-nums}
@@ -169,13 +170,13 @@ const IC={
 /* ---------- state + storage ---------- */
 const LS='cutline.v1';
 const PROFILE0={sex:null,age:18,heightIn:66,weight:150,activity:1.2,rate:1,bf:null,waist:null,neck:null,hip:null,adj:0,start:today(),u:0};
-const S={profile:clone(PROFILE0),days:{},tab:'today',date:today()};
+const S={profile:clone(PROFILE0),days:{},learn:{fixes:[],notes:[],u:0},tab:'today',date:today()};
 let sync='local'; // local | loading | synced | error
-try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j&&j.profile){S.profile=Object.assign(clone(PROFILE0),j.profile);S.days=j.days||{};}}catch(e){}
-function saveLocal(){try{localStorage.setItem(LS,JSON.stringify({profile:S.profile,days:S.days}))}catch(e){}}
+try{const j=JSON.parse(localStorage.getItem(LS)||'null');if(j&&j.profile){S.profile=Object.assign(clone(PROFILE0),j.profile);S.days=j.days||{};if(j.learn)S.learn=Object.assign({fixes:[],notes:[],u:0},j.learn);}}catch(e){}
+function saveLocal(){try{localStorage.setItem(LS,JSON.stringify({profile:S.profile,days:S.days,learn:S.learn}))}catch(e){}}
 
 let col=null;const pending={},writing={};
-const docBody=id=>id==='profile'?S.profile:S.days[id.slice(2)];
+const docBody=id=>id==='profile'?S.profile:id==='learn'?S.learn:S.days[id.slice(2)];
 function persist(id){saveLocal();if(!col)return;pending[id]=true;pump(id);}
 async function pump(id){
   if(writing[id])return;writing[id]=true;
@@ -194,7 +195,8 @@ function applyRemote(id,body){
   if(!body||pending[id]||writing[id])return false;
   const local=docBody(id);
   if(local&&(local.u||0)>=(body.u||0))return false;
-  if(id==='profile')S.profile=Object.assign(clone(PROFILE0),clone(body));
+  if(id==='learn'){const b=clone(body);S.learn={fixes:Array.isArray(b.fixes)?b.fixes:[],notes:Array.isArray(b.notes)?b.notes:[],u:b.u||0};}
+  else if(id==='profile')S.profile=Object.assign(clone(PROFILE0),clone(body));
   else if(/^d-\d{4}-\d\d-\d\d$/.test(id)){const d=clone(body);d.meals=Array.isArray(d.meals)?d.meals:[];d.ex=Array.isArray(d.ex)?d.ex:[];S.days[id.slice(2)]=d;}
   else return false;
   return true;
@@ -216,7 +218,7 @@ async function initDb(){
       if(first){
         first=false;
         // push anything newer or missing that this device logged before the account store answered
-        const ids=['profile'].concat(Object.keys(S.days).map(k=>'d-'+k));
+        const ids=['profile','learn'].concat(Object.keys(S.days).map(k=>'d-'+k));
         const remote={};snap.docs.forEach(d=>{remote[d.id]=(d.data()||{}).u||0;});
         ids.forEach(k=>{const b=docBody(k);if(b&&(b.u||0)>(remote[k]==null?-1:remote[k])&&(b.u||0)>0)persist(k);});
       }
@@ -227,11 +229,11 @@ async function initDb(){
 }
 
 /* ---------- AI ---------- */
-let AI=null,aiImages=false,aiTools=false;
+let AI=null,aiImages=false,aiTools=false,aiTier='',maxImg=1;
 const aiReady=(async()=>{
   const C=window.claude;if(!C||!C.use)return;
   try{AI=await C.use('sample');}catch(e){AI=null;}
-  if(AI){try{const l=await AI.limits();aiImages=!!(l&&l.images);aiTools=!!(l&&l.tools);}catch(e){aiImages=false;}}
+  if(AI){try{const l=await AI.limits();aiImages=!!(l&&l.images);aiTools=!!(l&&l.tools);maxImg=Math.min(3,(l&&l.images&&l.images.maxCount)||1);aiTier=l&&Array.isArray(l.modelTiers)&&l.modelTiers.includes('complex')?'complex':'';}catch(e){aiImages=false;}}
 })();
 function aiMsg(e){
   const c=e&&e.code;
@@ -243,9 +245,28 @@ function aiMsg(e){
   if(c==='cancelled')return '';
   return 'The estimate didn\'t go through. Check your connection and try again.';
 }
-const FOOD_RULES='Estimate like a careful dietitian. List each distinct food or drink as its own item. Judge portion size from the plate, utensils, hands and packaging. Include cooking oil, butter, dressings and sauces that are likely present even if not visible. Use realistic restaurant portions when it looks like restaurant food. Do not lowball.\n'
- +'Reply with only a JSON object in this exact shape:\n{"title":"short meal name","items":[{"name":"food","portion":"amount, e.g. 1 cup or 6 oz","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}],"confidence":"low|medium|high","note":"one short sentence on the biggest source of uncertainty"}\n'
- +'If there is no food or drink, reply {"title":"","items":[],"confidence":"low","note":"why"}.';
+const FOOD_RULES='Estimate like a dietitian weighing food, in this order:\n'
+ +'1. If a nutrition label, menu board or branded package is visible or named, use its published numbers exactly, scaled to the amount eaten.\n'
+ +'2. Otherwise name each distinct food and drink as its own item, including how it was cooked.\n'
+ +'3. Size each item against references in the frame: a dinner plate is about 10.5 in (27 cm), a fork about 7 in, a soda can 4.8 in tall, an adult palm about 3.5 in wide. Judge depth and piling, not only area. Convert each item to grams.\n'
+ +'4. Calories and macros = grams x standard values per 100 g for that food as cooked (USDA figures). Check that kcal is close to 4 x protein + 4 x carbs + 9 x fat.\n'
+ +'5. Add what photos hide: cooking oil or butter, dressings, sauces, cheese, sugar in drinks.\n'
+ +'Give your single best estimate. Home and restaurant portions usually exceed a labeled serving, so do not lowball, and do not pad either.\n'
+ +'Reply with only a JSON object in this exact shape:\n{"analysis":"2 or 3 sentences: the references you used and the sizes you measured","title":"short meal name","items":[{"name":"food","portion":"amount with grams, e.g. 1.5 cups (240 g)","kcal":0,"protein_g":0,"carbs_g":0,"fat_g":0}],"confidence":"low|medium|high","note":"one short sentence on the biggest source of uncertainty","question":"the one short question whose answer would most improve this estimate, or empty if none"}\n'
+ +'If there is no food or drink, reply {"title":"","items":[],"confidence":"low","note":"why","question":""}.';
+function learnContext(){
+  const L=S.learn,out=[];
+  if(S.profile.notes)out.push('Standing facts about how I eat: """'+S.profile.notes+'"""');
+  const fx=(L.fixes||[]).filter(f=>f.ai>0&&f.real>0).slice(-25);
+  if(fx.length){
+    out.push('My corrections to your past estimates. When the same or a similar food appears, start from my real number:\n'+fx.map(f=>'- '+f.n+(f.portion?' ('+f.portion+')':'')+': you said '+f.ai+' kcal, real '+f.real+' kcal').join('\n'));
+    if(fx.length>=3){const r=fx.map(f=>f.real/f.ai).sort((a,b)=>a-b),pct=Math.round((r[Math.floor(r.length/2)]-1)*100);
+      if(Math.abs(pct)>=8)out.push('Across these, my real numbers run about '+Math.abs(pct)+'% '+(pct>0?'higher':'lower')+' than your estimates. Shift new estimates that way.');}
+  }
+  if((L.notes||[]).length)out.push('Things I told you when fixing past meals:\n'+L.notes.slice(-10).map(n=>'- '+n).join('\n'));
+  return out.length?'\n\n'+out.join('\n\n'):'';
+}
+function touchLearn(){S.learn.u=Date.now();persist('learn');}
 async function prepImage(file,max){
   const url=URL.createObjectURL(file);
   try{
@@ -472,6 +493,11 @@ function vPlan(){
     <div><div class="label" style="margin-bottom:6px">Pace</div>${seg('rate',[[0,'Maintain'],[0.5,'½ lb / wk'],[1,'1 lb / wk'],[1.5,'1½ lb / wk']])}</div>
     <p class="small muted" style="margin:0">1 lb a week is the recommended pace at your size: fast enough to see, slow enough to keep muscle and keep running well.</p>
   </section>
+  <section class="card stack"><h3>Teach the estimator</h3>
+    <p class="small muted" style="margin:0">Every estimate reads what you write here, plus each fix you make on the check screen. ${(S.learn.fixes||[]).length+(S.learn.notes||[]).length} correction${(S.learn.fixes||[]).length+(S.learn.notes||[]).length===1?'':'s'} remembered so far.</p>
+    <label class="f">How you eat<textarea class="in" data-pf="notes" id="pf-notes" placeholder="e.g. I eat at the dining hall on 10-inch plates. I cook with olive oil. My shake is 2 scoops of whey with whole milk.">${esc(p.notes||'')}</textarea></label>
+    ${(S.learn.fixes||[]).length+(S.learn.notes||[]).length?`<button class="btn sm" data-act="learn-clear">Forget remembered corrections</button>`:''}
+  </section>
   <section class="card stack"><h3>The method</h3>
     <ol class="rules">
       <li><b>Lose 0.5 to 1% of body weight a week.</b> At 150 lb that is ¾ to 1½ lb. Slower cuts keep more muscle (Garthe 2011; Helms 2014).</li>
@@ -482,7 +508,7 @@ function vPlan(){
       <li><b>Trust your own data over the formula.</b> After two weeks the Progress tab measures your real burn and corrects the budget.</li>
       <li><b>Sleep 7+ hours.</b> Short sleep in a deficit shifts loss from fat to muscle.</li>
     </ol>
-    <p class="small muted" style="margin:0">Budget math: Mifflin-St Jeor resting burn × daily activity, plus exercise, minus your deficit. It never drops below ${fmt(floorK())} kcal. Photo estimates are typically within 20 to 30%, so correct portions you know.</p>
+    <p class="small muted" style="margin:0">Budget math: Mifflin-St Jeor resting burn × daily activity, plus exercise, minus your deficit. It never drops below ${fmt(floorK())} kcal. A photo alone is typically within 20 to 30%. Adding a detail, a nutrition label or a correction gets it much closer.</p>
   </section>
   <section class="card stack"><h3>Apple Health</h3>
     <p class="small" style="margin:0">A web page is not allowed to read Apple Health directly. Two fast ways to bring it in, both under Exercise on the Today tab:</p>
@@ -547,7 +573,7 @@ async function askSend(q){
 /* ---------- sheets ---------- */
 let draft=null,aiAbort=null;
 function openSheet(html){$('#panel').innerHTML=html;$('#sheet').hidden=false;}
-function closeSheet(){if(aiAbort){aiAbort.abort();aiAbort=null;}$('#sheet').hidden=true;$('#panel').innerHTML='';draft=null;}
+function closeSheet(){if(aiAbort){aiAbort.abort();aiAbort=null;}$('#sheet').hidden=true;$('#panel').innerHTML='';draft=null;pre=null;adding=false;}
 const hd=t=>`<div class="hd"><h2>${t}</h2><button class="x" data-act="close" aria-label="Close">✕</button></div>`;
 let toastT=null;
 function toast(m){if(!m)return;const t=$('#toast');t.textContent=m;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>{t.hidden=true;},3800);}
@@ -571,42 +597,81 @@ function loadingSheet(title,msg,preview){
   openSheet(`${hd(title)}${preview?`<img class="preview" alt="" src="${preview}">`:''}<div class="row"><span class="spin"></span><span>${msg}</span></div>`);
 }
 function errSheet(title,msg){openSheet(`${hd(title)}<p style="margin:0">${esc(msg)}</p><div class="two"><button class="btn" data-act="food-sheet">Type it in</button><button class="btn" data-act="close">Close</button></div>`);}
-function normItems(a){return (Array.isArray(a)?a:[]).map(i=>({name:String(i.name||'Food').slice(0,80),portion:String(i.portion||'').slice(0,60),kcal:pos(i.kcal),p:pos(i.protein_g),c:pos(i.carbs_g),f:pos(i.fat_g),mult:1})).filter(i=>i.kcal>0||i.p>0).slice(0,20);}
+function normItems(a){return (Array.isArray(a)?a:[]).map(i=>({name:String(i.name||'Food').slice(0,80),portion:String(i.portion||'').slice(0,60),kcal:pos(i.kcal),p:pos(i.protein_g),c:pos(i.carbs_g),f:pos(i.fat_g),ai:Math.round(pos(i.kcal)),mult:1})).filter(i=>i.kcal>0||i.p>0).slice(0,20);}
+let pre=null,adding=false;
 async function analyze(file,kind){
   if(!file)return;
   await aiReady;
   if(!AI||!aiImages){errSheet('Photo estimate','Photo estimates work when this page is open in Claude and allowed to send images. You can describe the meal or type in numbers instead.');return;}
-  loadingSheet(kind==='health'?'Reading screenshot':'Reading your plate','Getting it ready…');
-  let img;try{img=await prepImage(file,kind==='health'?1600:1280);}catch(e){errSheet('Photo','That photo could not be opened. Try another one.');return;}
-  loadingSheet(kind==='health'?'Reading screenshot':'Reading your plate',kind==='health'?'Pulling out your numbers…':'Identifying foods and portions…',img.preview);
+  const health=kind==='health';
+  loadingSheet(health?'Reading screenshot':'Photo','Getting it ready…');
+  let img;try{img=await prepImage(file,health?1600:1568);}catch(e){errSheet('Photo','That photo could not be opened. Try another one.');return;}
+  if(!health){
+    if(adding&&pre){pre.blobs.push(img.blob);pre.previews.push(img.preview);}
+    else pre={blobs:[img.blob],previews:[img.preview],thumb:img.thumb,note:''};
+    adding=false;prepSheet();return;
+  }
+  loadingSheet('Reading screenshot','Pulling out your numbers…',img.preview);
   aiAbort=new AbortController();const mine=aiAbort;
   try{
-    if(kind==='health'){
-      const r=await AI.json('This is a screenshot from Apple Health, Apple Fitness or a running watch app. Today is '+today()+'. Extract what it shows. Convert kilometers to miles and kilograms to pounds. Use null for anything not shown. "Active" or "Move" calories are active_kcal; never use total calories for it.\nReply with only JSON: {"date":"YYYY-MM-DD or null","active_kcal":null,"steps":null,"weight_lb":null,"workouts":[{"type":"Run","minutes":null,"distance_mi":null,"kcal":null}]}',{images:[img.blob],signal:mine.signal,cache:false});
-      if(mine.signal.aborted)return;
-      healthConfirm(r||{});
-    }else{
-      const r=await AI.json('This is a photo of something I am about to eat or drink. '+FOOD_RULES,{images:[img.blob],signal:mine.signal,cache:false});
-      if(mine.signal.aborted)return;
-      const items=normItems(r&&r.items);
-      if(!items.length){errSheet('No food found',(r&&r.note)||'Claude could not see food in that photo.');return;}
-      draft={title:String(r.title||'Meal').slice(0,60),items,thumb:img.thumb,src:'photo',note:String(r.note||''),conf:r.confidence,date:S.date};
-      reviewSheet();
-    }
+    const r=await AI.json('This is a screenshot from Apple Health, Apple Fitness or a running watch app. Today is '+today()+'. Extract what it shows. Convert kilometers to miles and kilograms to pounds. Use null for anything not shown. "Active" or "Move" calories are active_kcal; never use total calories for it.\nReply with only JSON: {"date":"YYYY-MM-DD or null","active_kcal":null,"steps":null,"weight_lb":null,"workouts":[{"type":"Run","minutes":null,"distance_mi":null,"kcal":null}]}',{images:[img.blob],signal:mine.signal,cache:false});
+    if(mine.signal.aborted)return;
+    healthConfirm(r||{});
   }catch(e){if(mine.signal.aborted)return;const m=aiMsg(e);if(m)errSheet('Estimate',m);}
   finally{if(aiAbort===mine)aiAbort=null;}
 }
-function reviewSheet(){
+function prepSheet(){
+  openSheet(`${hd('Before the estimate')}
+  <div class="row">${pre.previews.map(x=>`<img class="preview" style="max-height:170px;min-width:0;flex:1" alt="" src="${x}">`).join('')}</div>
+  <label class="f">Anything Claude should know? Optional, but it helps the most<textarea class="in" id="pre-note" placeholder="e.g. dining hall plate, about 2 cups of rice, chicken fried in oil, from Chipotle">${esc(pre.note)}</textarea></label>
+  ${pre.blobs.length<maxImg?`<button class="btn" data-act="pre-add">Add a side angle or the nutrition label</button>`:''}
+  <button class="btn primary" data-act="pre-go">Estimate calories</button>
+  <p class="small muted" style="margin:0">Best photo: straight down, whole plate in frame, with a fork or your hand next to it for scale. For packaged food, shoot the nutrition label and the numbers are exact.</p>`);
+}
+async function estimate(src,fix){
+  await aiReady;
+  if(!AI){toast('Estimates need this page open in Claude. Enter the numbers instead.');return;}
+  loadingSheet(src.blobs?'Reading your plate':'Estimating',fix?'Redoing it with your correction…':'Measuring portions. This takes 10 to 30 seconds…',src.previews&&src.previews[0]);
+  aiAbort=new AbortController();const mine=aiAbort;
+  let prompt=src.blobs?(src.blobs.length>1?'These photos show one meal I am about to eat or drink: other angles of it, or its nutrition label.':'This photo shows something I am about to eat or drink.')
+    :'I ate this: """'+src.text+'""" If no amount is given, assume a typical single serving.';
+  if(src.note)prompt+='\nWhat I know about it: """'+src.note+'""" Trust this over what the photo suggests.';
+  if(fix)prompt+='\nYour previous estimate: '+JSON.stringify(src.prev)+'\nMy correction: """'+fix+'""" Redo the estimate with this applied. Leave items I did not mention as they were.';
+  prompt+='\n'+FOOD_RULES+learnContext();
+  const opts={signal:mine.signal,cache:false};if(src.blobs)opts.images=src.blobs;if(aiTier&&src.blobs)opts.modelTier=aiTier;
+  try{
+    const r=await AI.json(prompt,opts);
+    if(mine.signal.aborted)return;
+    const items=normItems(r&&r.items);
+    if(!items.length){errSheet(src.blobs?'No food found':'Estimate',(r&&r.note)||'Claude could not find food in that.');return;}
+    const title=String(r.title||src.text||'Meal').slice(0,60);
+    if(fix){S.learn.notes=(S.learn.notes||[]).concat(title+': '+fix.slice(0,160)).slice(-20);touchLearn();}
+    draft={title,items,thumb:src.thumb,src:src.blobs?'photo':'text',note:String(r.note||''),conf:r.confidence,q:String(r.question||'').slice(0,200),date:S.date,source:src};
+    reviewSheet();
+  }catch(e){if(mine.signal.aborted)return;const m=aiMsg(e);if(m)errSheet('Estimate',m);}
+  finally{if(aiAbort===mine)aiAbort=null;}
+}
+function reviewTot(){
   const d=draft,tot=d.items.reduce((a,i)=>{a.k+=i.kcal*i.mult;a.p+=i.p*i.mult;a.c+=i.c*i.mult;a.f+=i.f*i.mult;return a;},{k:0,p:0,c:0,f:0});
+  return `<span><b style="font-family:var(--body);font-size:16px">Total</b><br><span class="small muted">P ${fmt(tot.p)} · C ${fmt(tot.c)} · F ${fmt(tot.f)}</span></span><b style="font-size:30px">${fmt(tot.k)} kcal</b>`;
+}
+const itemSub=i=>`${esc(i.portion)}${i.portion?' · ':''}P ${fmt(i.p*i.mult)} · C ${fmt(i.c*i.mult)} · F ${fmt(i.f*i.mult)}`;
+function reviewSheet(){
+  const d=draft;
   openSheet(`${hd(d.id?'Edit meal':'Check the estimate')}
   <label class="f">Meal<input class="in" id="r-title" value="${esc(d.title)}"></label>
-  ${d.note?`<p class="note small" style="margin:0">${d.conf?esc(d.conf[0].toUpperCase()+d.conf.slice(1))+' confidence. ':''}${esc(d.note)}</p>`:''}
-  <div>${d.items.map((i,n)=>`<div class="ritem"><div style="min-width:0"><div class="t" style="font-weight:600;overflow-wrap:anywhere">${esc(i.name)}</div><div class="small muted">${esc(i.portion)}${i.portion?' · ':''}P ${fmt(i.p*i.mult)} · C ${fmt(i.c*i.mult)} · F ${fmt(i.f*i.mult)}</div></div>
-    <div class="num" style="font-size:24px;text-align:right">${fmt(i.kcal*i.mult)}</div>
+  ${d.note?`<p class="note small" style="margin:0">${d.conf?esc(String(d.conf)[0].toUpperCase()+String(d.conf).slice(1))+' confidence. ':''}${esc(d.note)}</p>`:''}
+  <div>${d.items.map((i,n)=>`<div class="ritem"><div style="min-width:0"><div class="t" style="font-weight:600;overflow-wrap:anywhere">${esc(i.name)}</div><div class="small muted" id="r-sub-${n}">${itemSub(i)}</div></div>
+    <input class="in kin" data-n="${n}" id="r-k-${n}" inputmode="numeric" value="${Math.round(i.kcal*i.mult)}" aria-label="Calories for ${esc(i.name)}">
     <div class="step"><button data-act="mult" data-n="${n}" data-d="-0.25" aria-label="Smaller portion">−</button><span class="m">${i.mult}×</span><button data-act="mult" data-n="${n}" data-d="0.25" aria-label="Bigger portion">+</button></div>
     <button class="btn sm danger" data-act="item-x" data-n="${n}">Remove</button></div>`).join('')||'<p class="empty">No items left.</p>'}</div>
-  <div class="kv" style="border-top:2px solid var(--ink)"><span><b style="font-family:var(--body);font-size:16px">Total</b><br><span class="small muted">P ${fmt(tot.p)} · C ${fmt(tot.c)} · F ${fmt(tot.f)}</span></span><b style="font-size:30px">${fmt(tot.k)} kcal</b></div>
+  <div class="kv" style="border-top:2px solid var(--ink)" id="r-tot">${reviewTot()}</div>
+  <p class="small muted" style="margin:0">Know the real number? Type over any calorie box. Your fixes are remembered and used on later estimates.</p>
   <button class="btn primary" data-act="save-meal" ${d.items.length?'':'disabled'}>${d.id?'Save changes':'Add to '+esc(nice(d.date).toLowerCase())}</button>
+  ${d.source?`<div class="stack" style="border-top:1px solid var(--line);padding-top:12px">
+    ${d.q?`<p class="note small" style="margin:0"><b>Would sharpen this:</b> ${esc(d.q)}</p>`:''}
+    <label class="f">Something off? Tell Claude and it redoes the estimate<textarea class="in" id="r-fix" placeholder="e.g. the rice was about 2 cups, no cheese, chicken was fried"></textarea></label>
+    <button class="btn" data-act="refine">Re-estimate</button></div>`:''}
   ${d.id?`<button class="btn danger" data-act="del-meal">Delete meal</button>`:''}`);
 }
 function exSheet(e){
@@ -655,27 +720,23 @@ const A={
   tab(el){S.tab=el.dataset.tab;render();window.scrollTo(0,0);},
   day(el){const n=addDays(S.date,+el.dataset.n);if(n<=today()){S.date=n;render();}},
   close(){closeSheet();},
-  snap(){$('#cam').click();},
-  lib(){$('#lib').click();},
+  snap(){adding=false;$('#cam').click();},
+  lib(){adding=false;$('#lib').click();},
   shot(){$('#shot').click();},
   'food-sheet'(){foodSheet();},
   'ex-sheet'(){exSheet();},
   'health-sheet'(){healthSheet();},
   'weight-sheet'(){weightSheet();},
   pf(el){const k=el.dataset.k,v=el.dataset.v;S.profile[k]=k==='sex'?v:+v;saveProfile();render();},
-  async describe(){
-    const txt=$('#desc').value.trim();if(!txt){toast('Describe what you ate first.');return;}
-    await aiReady;if(!AI){toast('Estimates need this page open in Claude. Enter the numbers below instead.');return;}
-    loadingSheet('Estimating','Working out the calories…');
-    aiAbort=new AbortController();const mine=aiAbort;
-    try{
-      const r=await AI.json('I ate this: """'+txt.slice(0,600)+'"""\nIf no amount is given, assume a typical single serving. '+FOOD_RULES,{signal:mine.signal,cache:false});
-      if(mine.signal.aborted)return;
-      const items=normItems(r&&r.items);if(!items.length){errSheet('Estimate',(r&&r.note)||'That did not look like food.');return;}
-      draft={title:String(r.title||txt).slice(0,60),items,src:'text',note:String(r.note||''),conf:r.confidence,date:S.date};reviewSheet();
-    }catch(e){if(mine.signal.aborted)return;const m=aiMsg(e);if(m)errSheet('Estimate',m);}
-    finally{if(aiAbort===mine)aiAbort=null;}
+  describe(){const txt=$('#desc').value.trim();if(!txt){toast('Describe what you ate first.');return;}estimate({text:txt.slice(0,600)});},
+  'pre-add'(){pre.note=$('#pre-note').value;adding=true;$('#lib').click();},
+  'pre-go'(){const src=pre;src.note=$('#pre-note').value.trim().slice(0,400);pre=null;estimate(src);},
+  refine(){
+    const fix=$('#r-fix').value.trim();if(!fix){toast('Say what was off first.');return;}
+    keepTitle();const src=draft.source;src.prev=draft.items.map(i=>({name:i.name,portion:i.portion,kcal:Math.round(i.kcal*i.mult),protein_g:Math.round(i.p*i.mult),carbs_g:Math.round(i.c*i.mult),fat_g:Math.round(i.f*i.mult)}));
+    estimate(src,fix.slice(0,400));
   },
+  'learn-clear'(el){if(!el.dataset.sure){el.dataset.sure=1;el.textContent='Tap again to forget';return;}S.learn.fixes=[];S.learn.notes=[];touchLearn();render();},
   quick(){
     const k=num($('#q-k').value);if(k==null||k<0){toast('Enter the calories.');return;}
     const name=$('#q-name').value.trim()||'Quick add';
@@ -689,12 +750,18 @@ const A={
   mult(el){const i=draft.items[+el.dataset.n];if(!i)return;keepTitle();i.mult=Math.max(.25,Math.round((i.mult+ +el.dataset.d)*4)/4);reviewSheet();},
   'item-x'(el){keepTitle();draft.items.splice(+el.dataset.n,1);reviewSheet();},
   'save-meal'(){
-    keepTitle();const d=draft,date=d.date;
-    const items=d.items.map(i=>({name:i.name,portion:i.mult===1?i.portion:(i.portion?i.portion+' × '+i.mult:i.mult+'×'),kcal:Math.round(i.kcal*i.mult),p:Math.round(i.p*i.mult),c:Math.round(i.c*i.mult),f:Math.round(i.f*i.mult)}));
+    keepTitle();const d=draft,date=d.date,id=d.id||uid();
+    const items=d.items.map(i=>{const o={name:i.name,portion:i.mult===1?i.portion:(i.portion?i.portion+' × '+i.mult:i.mult+'×'),kcal:Math.round(i.kcal*i.mult),p:Math.round(i.p*i.mult),c:Math.round(i.c*i.mult),f:Math.round(i.f*i.mult)};if(i.ai)o.ai=i.ai;return o;});
+    // remember where the estimate was wrong, so later estimates start closer
+    let learned=false;
+    d.items.forEach(i=>{if(!i.ai)return;const real=Math.round(i.kcal*i.mult),k=id+'|'+i.name,fx=S.learn.fixes,at=fx.findIndex(f=>f.k===k);
+      if(real>0&&Math.abs(real-i.ai)/i.ai>=.1){const f={k,n:i.name,portion:i.portion,ai:i.ai,real};if(at>=0)fx[at]=f;else fx.push(f);learned=true;}
+      else if(at>=0){fx.splice(at,1);learned=true;}});
+    if(learned){S.learn.fixes=S.learn.fixes.slice(-40);touchLearn();}
     const day=getDay(date,true);
     if(d.id){const m=day.meals.find(x=>x.id===d.id);if(m){m.title=d.title;m.items=items;}}
-    else{const m={id:uid(),t:nowT(),title:d.title||'Meal',src:d.src,items};if(d.thumb)m.thumb=d.thumb;day.meals.push(m);}
-    closeSheet();touchDay(date);toast(d.id?'Saved.':'Logged.');
+    else{const m={id,t:nowT(),title:d.title||'Meal',src:d.src,items};if(d.thumb)m.thumb=d.thumb;day.meals.push(m);}
+    closeSheet();touchDay(date);toast(learned?'Saved. Correction remembered.':d.id?'Saved.':'Logged.');
   },
   'meal-edit'(el){const m=getDay(S.date).meals.find(x=>x.id===el.dataset.id);if(!m)return;draft={id:m.id,title:m.title,date:S.date,items:m.items.map(i=>Object.assign({mult:1},i))};reviewSheet();},
   'del-meal'(el){if(!el.dataset.sure){el.dataset.sure=1;el.textContent='Tap again to delete';return;}const date=draft.date,day=getDay(date,true);day.meals=day.meals.filter(x=>x.id!==draft.id);closeSheet();touchDay(date);},
@@ -745,8 +812,15 @@ document.addEventListener('input',e=>{if(e.target.id==='ex-mi'||e.target.id==='e
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='cam'||el.id==='lib'||el.id==='shot'){const f=el.files&&el.files[0];el.value='';analyze(f,el.id==='shot'?'health':'food');return;}
+  if(el.classList.contains('kin')&&draft){
+    const n=+el.dataset.n,i=draft.items[n],v=num(el.value);if(!i)return;
+    if(v==null||v<0){el.value=Math.round(i.kcal*i.mult);return;}
+    const cur=i.kcal*i.mult;if(cur>0){const r=v/cur;i.kcal*=r;i.p*=r;i.c*=r;i.f*=r;}else i.kcal=v/i.mult;
+    const sub=$('#r-sub-'+n);if(sub)sub.innerHTML=itemSub(i);const t=$('#r-tot');if(t)t.innerHTML=reviewTot();return;
+  }
   const k=el.dataset&&el.dataset.pf;if(!k)return;
   const p=S.profile,v=num(el.value);
+  if(k==='notes'){p.notes=el.value.trim().slice(0,600);saveProfile();return;}
   if(k==='ft'||k==='in'){const ft=num($('#pf-ft').value)||5,inch=num($('#pf-in').value)||0;p.heightIn=Math.max(48,Math.min(90,ft*12+inch));}
   else if(k==='age')p.age=v&&v>=13&&v<=90?Math.round(v):null;
   else p[k]=v!=null&&v>0?v:null;
