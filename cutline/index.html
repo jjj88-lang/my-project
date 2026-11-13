@@ -392,7 +392,7 @@ function vToday(){
     <div class="macro"><div class="label">Carbs</div>${bar(t.c,m.c,'var(--burn)')}<span class="num">${fmt(t.c)}</span><span class="small muted"> / ${m.c} g</span></div>
     <div class="macro"><div class="label">Fat</div>${bar(t.f,m.f,'var(--fat)')}<span class="num">${fmt(t.f)}</span><span class="small muted"> / ${m.f} g</span></div>
   </section>
-  <div class="actions"><button class="btn primary" data-act="snap">${IC.cam} Snap a meal</button><button class="btn" data-act="food-sheet">Type it in</button></div>
+  <div class="actions"><button class="btn primary" data-act="snap">${IC.cam} Snap a meal</button><button class="btn" data-act="search-sheet">Search foods</button></div>
   <section class="card"><div class="sechead"><h3>Food</h3><span class="num" style="font-size:20px">${fmt(t.kcal)} kcal</span></div><div class="list">${meals}</div></section>
   <section class="card"><div class="sechead"><h3>Exercise</h3><span class="num" style="font-size:20px;color:var(--burn)">${fmt(tg.burn.ex)} kcal</span></div>
     <div class="list">${exs||`<p class="empty">No run logged. Add it and your budget goes up by what you burned.</p>`}</div>
@@ -508,7 +508,7 @@ function vPlan(){
       <li><b>Trust your own data over the formula.</b> After two weeks the Progress tab measures your real burn and corrects the budget.</li>
       <li><b>Sleep 7+ hours.</b> Short sleep in a deficit shifts loss from fat to muscle.</li>
     </ol>
-    <p class="small muted" style="margin:0">Budget math: Mifflin-St Jeor resting burn × daily activity, plus exercise, minus your deficit. It never drops below ${fmt(floorK())} kcal. A photo alone is typically within 20 to 30%. Adding a detail, a nutrition label or a correction gets it much closer.</p>
+    <p class="small muted" style="margin:0">Budget math: Mifflin-St Jeor resting burn × daily activity, plus exercise, minus your deficit. It never drops below ${fmt(floorK())} kcal. Search uses USDA FoodData Central: 13,224 foods and dishes and 396,364 packaged products, and photo estimates check against it. A photo alone is typically within 20 to 30%. Adding a detail, a nutrition label or a correction gets it much closer.</p>
   </section>
   <section class="card stack"><h3>Apple Health</h3>
     <p class="small" style="margin:0">A web page is not allowed to read Apple Health directly. Two fast ways to bring it in, both under Exercise on the Today tab:</p>
@@ -529,7 +529,7 @@ try{const c=JSON.parse(localStorage.getItem('cutline.chat')||'[]');if(Array.isAr
 function saveChat(){try{localStorage.setItem('cutline.chat',JSON.stringify(chat.slice(-40)))}catch(e){}}
 function askContext(){
   const p=S.profile,bf=bodyFat(),d=today(),t=dayTot(d),g=target(d),m=macros(g.kcal),day=getDay(d);
-  return 'You are the assistant inside Cutline, my calorie and training tracker. Answer whatever I ask, on any topic, directly and briefly in plain text with no markdown. For food, training and fat-loss questions use my numbers below and be specific. Never advise eating under '+floorK()+' kcal a day. Only call a logging tool when I clearly say I ate, weighed or ran something and want it recorded; after logging, say what you logged in one line.\n'
+  return 'You are the assistant inside Cutline, my calorie and training tracker. Answer whatever I ask, on any topic, directly and briefly in plain text with no markdown. For food, training and fat-loss questions use my numbers below and be specific. Never advise eating under '+floorK()+' kcal a day. When I ask how many calories something has, check lookup_food first if you have it and say when a number is your own estimate. Only call a logging tool when I clearly say I ate, weighed or ran something and want it recorded; after logging, say what you logged in one line.\n'
    +'About me: '+(p.sex==='f'?'female':p.sex==='m'?'male':'sex not set')+', age '+(p.age||18)+', '+Math.floor(p.heightIn/12)+'ft '+Math.round(p.heightIn%12)+'in, trend weight '+curWeight().toFixed(1)+' lb'+(bf?', about '+bf.v.toFixed(0)+'% body fat':'')+'. I run daily and want visible abs. Pace goal '+p.rate+' lb/week.\n'
    +'Today ('+d+', '+nowT()+'): budget '+Math.round(g.kcal)+' kcal, eaten '+Math.round(t.kcal)+', left '+Math.round(g.kcal-t.kcal)+'. Protein '+Math.round(t.p)+' of '+m.p+' g, carbs '+Math.round(t.c)+' of '+m.c+' g, fat '+Math.round(t.f)+' of '+m.f+' g. Meals: '+(day.meals.map(x=>x.title+' '+Math.round(mealTot(x).kcal)).join('; ')||'none yet')+'.\n'
    +'Last 7 days:\n'+weekLines().join('\n');
@@ -562,12 +562,104 @@ async function askSend(q){
   const hist=chat.slice(0,-1).slice(-17);while(hist.length&&hist[0].role!=='user')hist.shift();
   const msgs=hist.map((m,i)=>({role:m.role,content:i===0?askContext()+'\n\nMy message: '+m.content:m.content}));
   const opts={cache:false,onText:x=>{last.content=x.text;const b=$('#ask-live');if(b)b.textContent=x.text||'Thinking…';}};
-  if(aiTools)opts.tools=ASK_TOOLS;
+  if(aiTools)opts.tools=ASK_TOOLS.concat(LOOKUP_TOOL);
   let failed='';
   try{const r=await AI(msgs,opts);last.content=(r&&r.text)||last.content||'Done.';}
   catch(e){if(e&&e.text)last.content=e.text;else{chat.splice(chat.length-2,2);failed=q;}toast(aiMsg(e));}
   asking=false;saveChat();render();
   if(failed){const ta=$('#ask-in');if(ta)ta.value=failed;}else scrollEnd();
+}
+
+/* ---------- food database (USDA FoodData Central, built by tools/build_food_db.py) ---------- */
+const DB={meta:null,g:null,gt:null,idx:{},dat:{},post:new Map(),p:null};
+const STOP=new Set(['and','with','the','of','in','for','oz','or','to','no','by','per']);
+function toks(s){const out=[];String(s).toLowerCase().replace(/[^a-z0-9]+/g,' ').split(' ').forEach(t=>{if(t.length>3&&t.endsWith('s'))t=t.slice(0,-1);if(t.length>=2&&!STOP.has(t)&&!out.includes(t))out.push(t);});return out;}
+const getJ=u=>fetch(u).then(r=>{if(!r.ok)throw new Error(u);return r.json();});
+function dbInit(){if(!DB.p)DB.p=Promise.all([getJ('db/meta.json'),getJ('db/g.json')]).then(r=>{DB.meta=r[0];DB.g=r[1];DB.gt=DB.g.map(x=>toks(x[1]));}).catch(e=>{DB.p=null;throw e;});return DB.p;}
+const ODD=/inch|miniature|mini\b|\bjr\b|cubic|guideline|tbsp|tablespoon|tsp|teaspoon|\boz\b|small|large|extra|thin|thick|\bnlea\b|strip|crumb/i,GOODP=/any size|medium|regular|\b1 (cup|item|piece|slice|sandwich|burger|burrito|taco|bar|bowl|serving|container|each|egg|banana|apple|fruit)/i;
+function porSort(a){const r=o=>GOODP.test(o.d)&&!ODD.test(o.d)?0:ODD.test(o.d)?2:1;return a.map((o,i)=>[r(o),i,o]).sort((x,y)=>x[0]-y[0]||x[1]-y[1]).map(x=>x[2]);}
+const gItem=x=>({name:x[1],brand:'',k:x[2],p:x[3],c:x[4],f:x[5],unit:'g',por:porSort(x[6].map(q=>({d:q[0],g:q[1]}))).concat({d:'100 g',g:100}),src:x[0]==='S'?'USDA survey foods':'USDA standard reference'});
+function bItem(str){const a=str.split('|'),ss=+a[6]||0,u=a[7]||'g',h0=(a[8]||'').toLowerCase().replace(/\s*[(\/|]?\s*[\d.]+\s*(g|grm|ml)\b\)?.*$/,'').trim(),hh=h0&&!/serving|^[\d.]+ ?(onz|oz|g|ml)?$/.test(h0)?h0:'1 serving';
+  return {name:a[0],brand:a[1],k:+a[2],p:+a[3],c:+a[4],f:+a[5],unit:u,por:(ss>0?[{d:hh+' ('+ss+' '+u+')',g:ss}]:[]).concat({d:'100 '+u,g:100}),src:'USDA branded foods (label data)'};}
+function searchGeneric(q,limit){
+  const qt=toks(q);if(!qt.length||!DB.g)return [];const res=[];
+  DB.g.forEach((x,i)=>{const nt=DB.gt[i];let sc=0;for(const t of qt){const j=nt.findIndex(n=>n===t||n.startsWith(t));if(j<0)return;sc+=j+(nt[j]===t?0:.5);}res.push([nt.length*2+sc+(x[0]==='S'?0:1.5)-(nt.includes('raw')?1.5:0)-(nt.includes('nf')?1:0),i]);});
+  res.sort((a,b)=>a[0]-b[0]);return res.slice(0,limit).map(r=>gItem(DB.g[r[1]]));
+}
+async function postings(tok,prefix){
+  const sh=(tok.charCodeAt(0)*41+tok.charCodeAt(1))%DB.meta.ish;
+  const ix=await (DB.idx[sh]||(DB.idx[sh]=getJ('db/i/'+sh+'.json').catch(e=>{delete DB.idx[sh];throw e;})));
+  const dec=k=>{let a=DB.post.get(k);if(!a){let n=0;a=ix[k].split(' ').map(v=>n+=parseInt(v,36));if(DB.post.size>60)DB.post.clear();DB.post.set(k,a);}return a;};
+  if(!prefix)return ix[tok]?dec(tok):[];
+  const keys=Object.keys(ix).filter(k=>k.startsWith(tok)).sort((a,b)=>a.length-b.length).slice(0,20);
+  if(keys.length<2)return keys.length?dec(keys[0]):[];
+  const set=new Set();keys.forEach(k=>dec(k).forEach(v=>set.add(v)));return Array.from(set).sort((a,b)=>a-b);
+}
+async function searchBranded(q,limit){
+  const qt=toks(q);if(!qt.length)return {items:[],total:0};
+  await dbInit();
+  const lists=await Promise.all(qt.map((t,i)=>postings(t,i===qt.length-1)));
+  lists.sort((a,b)=>a.length-b.length);let cur=lists[0];
+  for(let i=1;i<lists.length&&cur.length;i++){const st=new Set(lists[i]);cur=cur.filter(v=>st.has(v));}
+  const ids=cur.slice(0,limit),per=DB.meta.per;
+  const sh=Array.from(new Set(ids.map(i=>Math.floor(i/per))));
+  await Promise.all(sh.map(n=>DB.dat[n]||(DB.dat[n]=getJ('db/d/'+n+'.json').catch(e=>{delete DB.dat[n];throw e;}))));
+  const items=[];for(const i of ids){const rows=await DB.dat[Math.floor(i/per)];if(rows[i%per])items.push(bItem(rows[i%per]));}
+  return {items,total:cur.length};
+}
+const LOOKUP_TOOL={name:'lookup_food',description:'Search the USDA food database (13,000 foods and prepared dishes, 396,000 packaged products). Returns verified calories and macros per 100 g and common serving weights. Use plain food words; include the brand for packaged products.',
+  inputSchema:{type:'object',properties:{query:{type:'string'}},required:['query']},
+  async execute(i){
+    const q=String((i&&i.query)||'').slice(0,80);await dbInit();
+    let b=[];try{b=(await searchBranded(q,4)).items;}catch(e){}
+    const out=searchGeneric(q,5).concat(b).map(x=>({name:x.name,brand:x.brand||undefined,per_100:{kcal:x.k,protein_g:x.p,carbs_g:x.c,fat_g:x.f},servings:x.por.slice(0,3).map(o=>o.d+(/\(/.test(o.d)?'':' = '+o.g+' '+x.unit))}));
+    return out.length?{matches:out}:{matches:[],hint:'No match. Try fewer or more general words.'};
+  }};
+let fs={seq:0,gen:[],br:[],total:0,lim:12,q:'',pick:null,pi:0},fsTimer=null;
+function searchSheet(){
+  fs={seq:fs.seq+1,gen:[],br:[],total:0,lim:12,q:'',pick:null,pi:0};
+  openSheet(`${hd('Search foods')}
+  <input class="in" id="fs-q" type="search" autocomplete="off" placeholder="chicken burrito, greek yogurt, clif bar…" aria-label="Search foods">
+  <div id="fs-res" class="stack"><p class="small muted" style="margin:0">Searches 13,224 foods and prepared dishes and 396,364 packaged products from USDA FoodData Central. Numbers are lab or label data, not estimates.</p></div>
+  <button class="btn sm" data-act="food-sheet">Describe it or enter numbers instead</button>`);
+  dbInit().catch(()=>{const r=$('#fs-res');if(r)r.innerHTML='<p class="note warn small" style="margin:0">The food database could not be loaded. Check your connection and reopen search.</p>';});
+  const q=$('#fs-q');if(q&&matchMedia('(pointer:fine)').matches)q.focus();
+}
+const fsKcal=x=>Math.round(x.k*x.por[0].g/100);
+function fsRender(busy){
+  const r=$('#fs-res');if(!r)return;
+  const row=(x,k,i)=>`<button class="item" data-act="fs-pick" data-k="${k}" data-i="${i}"><span class="grow"><span class="t">${esc(x.name)}</span><br><span class="small muted">${x.brand?esc(x.brand)+' · ':''}${esc(x.por[0].d)}</span></span><span class="k">${fmt(fsKcal(x))}</span></button>`;
+  r.innerHTML=(fs.gen.length?`<div><div class="label">Foods and dishes</div><div class="list">${fs.gen.map((x,i)=>row(x,'g',i)).join('')}</div></div>`:'')
+   +(fs.br.length?`<div><div class="label">Packaged products · ${fmt(fs.total)} match${fs.total===1?'':'es'}</div><div class="list">${fs.br.map((x,i)=>row(x,'b',i)).join('')}</div>${fs.total>fs.br.length&&fs.lim<60?`<button class="btn sm" data-act="fs-more" style="margin-top:8px">Show more</button>`:''}</div>`:'')
+   +(busy?`<div class="row"><span class="spin"></span><span class="small muted">Searching products…</span></div>`:'')
+   +(!busy&&!fs.gen.length&&!fs.br.length?`<p class="empty">No match for "${esc(fs.q)}". Try fewer words, or describe it and let Claude estimate.</p>`:'');
+}
+async function fsRun(){
+  const q=fs.q,seq=++fs.seq;
+  if(toks(q).length===0){fs.gen=[];fs.br=[];fs.total=0;const r=$('#fs-res');if(r)r.innerHTML='';return;}
+  try{
+    await dbInit();if(seq!==fs.seq)return;
+    fs.gen=searchGeneric(q,8);fs.br=[];fs.total=0;fsRender(true);
+    const b=await searchBranded(q,fs.lim);if(seq!==fs.seq)return;
+    fs.br=b.items;fs.total=b.total;fsRender(false);
+  }catch(e){if(seq===fs.seq){fsRender(false);toast('Could not reach the food database. Check your connection.');}}
+}
+function fsAmount(){
+  const x=fs.pick,o=x.por[fs.pi],g=num($('#fs-g')&&$('#fs-g').value),qty=num($('#fs-qty')&&$('#fs-qty').value);
+  const grams=g!=null&&g>0?g:(qty!=null&&qty>0?qty:1)*o.g,m=grams/100;
+  return {grams,label:g!=null&&g>0?Math.round(g)+' '+x.unit:(qty!=null&&qty>0?qty:1)+' × '+o.d,kcal:Math.round(x.k*m),p:Math.round(x.p*m),c:Math.round(x.c*m),f:Math.round(x.f*m)};
+}
+function fsNums(){const a=fsAmount(),el=$('#fs-num');if(el)el.innerHTML=`<span><b style="font-family:var(--body);font-size:16px">${fmt(a.grams)} ${fs.pick.unit}</b><br><span class="small muted">P ${a.p} · C ${a.c} · F ${a.f}</span></span><b style="font-size:30px">${fmt(a.kcal)} kcal</b>`;}
+function fsDetail(){
+  const x=fs.pick;
+  openSheet(`${hd('How much?')}
+  <div><div class="t" style="font-weight:600;font-size:18px;overflow-wrap:anywhere">${esc(x.name)}</div><div class="small muted">${x.brand?esc(x.brand)+' · ':''}${fmt(x.k)} kcal per 100 ${x.unit} · ${esc(x.src)}</div></div>
+  <div class="seg" role="group" aria-label="Serving">${x.por.map((o,i)=>`<button data-act="fs-por" data-i="${i}" aria-pressed="${i===fs.pi}" style="flex:1 1 45%">${esc(o.d)}</button>`).join('')}</div>
+  <div class="two"><label class="f">How many<input class="in" id="fs-qty" inputmode="decimal" value="1"></label><label class="f">Or exact ${x.unit==='ml'?'milliliters':'grams'}<input class="in" id="fs-g" inputmode="decimal" placeholder="from a scale"></label></div>
+  <div class="kv" style="border-top:2px solid var(--ink)" id="fs-num"></div>
+  <button class="btn primary" data-act="fs-add">Add to ${esc(nice(S.date).toLowerCase())}</button>
+  <button class="btn sm" data-act="search-sheet">Back to search</button>`);
+  fsNums();
 }
 
 /* ---------- sheets ---------- */
@@ -583,6 +675,7 @@ function foodSheet(){
   const seen={},rec=[];
   Object.keys(S.days).sort().reverse().some(k=>{S.days[k].meals.slice().reverse().forEach(m=>{const key=(m.title||'').toLowerCase();if(key&&!seen[key]&&rec.length<6){seen[key]=1;rec.push(m);}});return rec.length>=6;});
   openSheet(`${hd('Log food')}
+  <button class="btn" data-act="search-sheet">Search the food database</button>
   <div class="two"><button class="btn primary" data-act="snap">${IC.cam} Take photo</button><button class="btn" data-act="lib">Photo library</button></div>
   <label class="f">Or describe it<textarea class="in" id="desc" placeholder="e.g. chicken burrito bowl with rice, black beans, cheese and guac"></textarea></label>
   <button class="btn" data-act="describe">Estimate from description</button>
@@ -637,8 +730,9 @@ async function estimate(src,fix){
     :'I ate this: """'+src.text+'""" If no amount is given, assume a typical single serving.';
   if(src.note)prompt+='\nWhat I know about it: """'+src.note+'""" Trust this over what the photo suggests.';
   if(fix)prompt+='\nYour previous estimate: '+JSON.stringify(src.prev)+'\nMy correction: """'+fix+'""" Redo the estimate with this applied. Leave items I did not mention as they were.';
+  if(aiTools)prompt+='\nYou have lookup_food, a database of verified nutrition data. In your first turn call it once for every item, all calls together, then compute from the returned per-100 g values and your gram estimates. If nothing fits an item, use your own knowledge.';
   prompt+='\n'+FOOD_RULES+learnContext();
-  const opts={signal:mine.signal,cache:false};if(src.blobs)opts.images=src.blobs;if(aiTier&&src.blobs)opts.modelTier=aiTier;
+  const opts={signal:mine.signal,cache:false};if(src.blobs)opts.images=src.blobs;if(aiTier&&src.blobs)opts.modelTier=aiTier;if(aiTools)opts.tools=[LOOKUP_TOOL];
   try{
     const r=await AI.json(prompt,opts);
     if(mine.signal.aborted)return;
@@ -789,6 +883,16 @@ const A={
   'apply-adj'(el){S.profile.adj=+el.dataset.v||0;saveProfile();render();toast('Budget now uses your measured burn.');},
   'ask-send'(el){const ta=$('#ask-in');askSend(el.dataset.q||(ta?ta.value:''));},
   'ask-clear'(el){if(asking)return;if(!el.dataset.sure){el.dataset.sure=1;el.textContent='Tap again to clear';return;}chat=[];saveChat();render();},
+  'search-sheet'(){searchSheet();},
+  'fs-more'(){fs.lim=60;fsRun();},
+  'fs-pick'(el){fs.pick=(el.dataset.k==='g'?fs.gen:fs.br)[+el.dataset.i];if(!fs.pick)return;fs.pi=0;fsDetail();},
+  'fs-por'(el){fs.pi=+el.dataset.i;document.querySelectorAll('[data-act="fs-por"]').forEach(b=>b.setAttribute('aria-pressed',b===el));fsNums();},
+  'fs-add'(){
+    const x=fs.pick,a=fsAmount();if(!(a.grams>0)||a.grams>5000){toast('Enter an amount.');return;}
+    const name=x.name.slice(0,70);
+    getDay(S.date,true).meals.push({id:uid(),t:nowT(),title:(x.brand?x.brand+' ':'')+name,src:'db',items:[{name,portion:a.label,kcal:a.kcal,p:a.p,c:a.c,f:a.f}]});
+    closeSheet();touchDay(S.date);toast('Added '+fmt(a.kcal)+' kcal.');
+  },
   async coach(el){
     await aiReady;if(!AI){toast('The coach needs this page open in Claude.');return;}
     const lines=weekLines();
@@ -808,7 +912,7 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]');if(!el||el.disabled)return;
   const f=A[el.dataset.act];if(f)f(el);
 });
-document.addEventListener('input',e=>{if(e.target.id==='ex-mi'||e.target.id==='ex-min')exEstimate();});
+document.addEventListener('input',e=>{if(e.target.id==='fs-q'){fs.q=e.target.value;fs.lim=12;clearTimeout(fsTimer);fsTimer=setTimeout(fsRun,220);return;}if(e.target.id==='fs-qty'||e.target.id==='fs-g'){fsNums();return;}if(e.target.id==='ex-mi'||e.target.id==='ex-min')exEstimate();});
 document.addEventListener('change',e=>{
   const el=e.target;
   if(el.id==='cam'||el.id==='lib'||el.id==='shot'){const f=el.files&&el.files[0];el.value='';analyze(f,el.id==='shot'?'health':'food');return;}
@@ -831,7 +935,7 @@ document.addEventListener('change',e=>{
 });
 document.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey&&e.target.id==='ask-in'&&matchMedia('(pointer:fine)').matches){e.preventDefault();askSend(e.target.value);return;}if(e.key==='Escape'&&!$('#sheet').hidden)closeSheet();});
 
-window.__cutline={S,bmr,target,exKcal,macros,measured,bodyFat};
+window.__cutline={searchGeneric,searchBranded,dbInit,S,bmr,target,exKcal,macros,measured,bodyFat};
 render();
 initDb();
 })();
